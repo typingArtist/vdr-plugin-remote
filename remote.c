@@ -17,7 +17,7 @@
 
 #define NUMREMOTES      5         // maximum number of remote control devices
 
-static const char *VERSION        = "0.0.1";
+static const char *VERSION        = "0.1.0";
 static const char *DESCRIPTION    = "Remote control";
 
 //#define DEBUG
@@ -144,9 +144,26 @@ public:
 cRemoteDevInput::cRemoteDevInput(const char *name, int f, char *d)
 :cRemoteGeneric(name, f, d)
 {
+    unsigned long data[EV_MAX];
+ 
     Start();
-    // TODO: remove this when the driver supports autorepeat
-    polldelay = repeatdelay = repeatfreq = repeattimeout = 0;
+
+    memset (data, 0, sizeof data);
+    ioctl(f, EVIOCGBIT(0,EV_MAX), data); 
+
+#define BITS_PER_LONG	(sizeof(unsigned long) * 8)
+
+    if ( data[EV_REP/BITS_PER_LONG] & (1 << EV_REP%BITS_PER_LONG) )
+    {
+        // autorepeat driver
+        DSYSLOG("%s: supports autorepeat!", d);
+        polldelay = 0;
+    }
+    else
+    {
+        // non-autorepeat drivers
+        polldelay = repeatdelay = repeatfreq = repeattimeout = 0;
+    }
 }
 
 uint64 cRemoteDevInput::getKey(void)
@@ -157,7 +174,11 @@ uint64 cRemoteDevInput::getKey(void)
 
     n = read(fh, &ev, sizeof ev);
     if (n == sizeof ev)
+    {
+        if (ev.value)
+            ev.value = 1;
         code = ((uint64)ev.value << 32) | ((uint64)ev.type << 16) | (uint64)ev.code;
+    }
     else
         code = INVALID_KEY;
     return code;
@@ -312,6 +333,11 @@ bool cPluginRemote::ProcessArgs(int argc, char *argv[])
           case 'i':
           case 'l':
           case 't':
+              if (devcnt >= NUMREMOTES)
+              {
+                  esyslog("%s: too many remotes", Name());
+                  return false;
+              }
               devtyp[devcnt] = c;
               devnam[devcnt] = optarg;
 	      devcnt++;

@@ -12,7 +12,8 @@ Distributed under GPL, see the file COPYING for license information.
 
 Description:
 ------------
-This plugin supports the built-in remote control port of the DVB-S Nexus 2.1.
+This plugin supports the built-in remote control port of the DVB-S Rev. 2.1/2.2
+(and the J2 or CAM connectors of some other boards, see file FAQ).
 It is primarily intended for use with the new DVB driver (NEWSTRUCT and later,
 i.e. API versions 2 and 3), but may be used with the old driver, too.
 
@@ -21,24 +22,24 @@ the keys of the remote control. It is possible to use several devices at the
 same time, but this is not very important right now...
 
 Supported kernel devices:
-- new DVB driver (API-2 NEWSTRUCT, API-3): /dev/input/event0
+- new DVB driver (API-2, API-3): /dev/input/eventX
 - old DVB driver (API-1): /dev/lirc
-- keyboard: /dev/console, /dev/tty..
+- keyboard: /dev/console, /dev/ttyX
 
 
 Installation:
 -------------
 The remote plugin is installed as usual:
-- cd VDR/PLUGINS/SRC
-- tar xfz vdr-remote-0.0.1.tgz
-- ln -s remote-0.0.1 remote
+- cd VDR/PLUGINS/src
+- tar xfz vdr-remote-0.1.0.tgz
+- ln -s remote-0.1.0 remote
 - cd ../..
 - make plugins
 
 
-API-2 NEWSTRUCT, API-3 driver:
-------------------------------
-Remote control events are passed through '/device/input/event0'.
+API-3 driver (version 1.0.0, CVS HEAD, CVS dvb-kernel) 
+------------------------------------------------------
+Remote control events are passed through '/device/input/eventX'.
 Since the /dev/input protocol is standardized in the kernel, there is a
 chance that this plugin will work with other /dev/input devices, too.
 However, this has not been tested yet...
@@ -51,13 +52,26 @@ Verify that the device node exists and you have read access rights.
 You have to select the correct remote control type, inversion setting and
 keymap using the tool 'av7110_loadkeys'. Please read the file README in
 the directory 'DVB/apps/av7110_loadkeys'.
+If you still have problems, take a look on the checklist in file 'FAQ'.
 
-Note that, due to a firmware problem, autorepeat does not work with the
-current driver. I hope that this will be fixed soon.
+If you'd like to use autorepeat, you have to use CVS HEAD, CVS dvb-kernel
+2003-03-31 or later (or the next 1.0.0 release, of course).
+The feature is automatically detected and used.
+
+BTW, these drivers might also be useful, if the remote control of your
+TV set interferes with the remote control of your DVB-S. See the file
+'DVB/apps/av7110_loadkeys/README' for information how to enable 
+checking of the device address.
 
 
-API-1 old driver
-----------------
+API-2 (CVS NEWSTRUCT)
+---------------------
+Since the NEWSTRUCT branch is obsolete, there is no reason to use this
+driver anymore. See API-3 above.
+
+
+API-1 (old driver, version 0.9.4)
+---------------------------------
 The old DVB driver provides a module (DVB/driver/lirc/lirc_dvb.o) which
 connects to the LIRC device ('/dev/lirc', lirc_dev.o).
 Using the -l option, it is possible to use '/dev/lirc' as a direct input

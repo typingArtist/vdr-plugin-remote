@@ -10,3 +10,6 @@ Mike Gratsas <MikeGratsas at techemail dot com>
 Ville Skyttä <ville dot skytta at iki dot fi>
  for translating OSD texts to the Finnish language
 
+Ronny Kornexl <ronny dot kornexl at online dot de>
+ for reporting that cTtyStatus::Recording() and cTtyStatus::Replaying()
+ may cause a segfault due to missing null-pointer checks

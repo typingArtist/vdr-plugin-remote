@@ -35,7 +35,7 @@ class cTtyStatus : public cStatus {
 /****************************************************************************/
 private:
   int fd;
-  const char **lineBuf;
+  char **lineBuf;
   int numEntries;
   int lastIndex;
   int currIndex;

@@ -28,7 +28,7 @@
  
 #define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
 
-static const char *VERSION        = "0.3.1";
+static const char *VERSION        = "0.3.2";
 static const char *DESCRIPTION    = "Remote control";
 
 
@@ -74,13 +74,13 @@ void cRemoteGeneric::Action(void)
     for (;;)
     {
         if (polldelay)
-            usleep(100*polldelay);
+            usleep(1000*polldelay);
 
         code = getKey();
         if (code == INVALID_KEY)
         {
             esyslog("error reading '%s'\n", device);
-            usleep(10000*polldelay);
+            usleep(100000*polldelay);
             continue;
         }
 
@@ -182,7 +182,7 @@ bool cRemoteDevInput::loadKeymap(const char *devname, uint32_t options)
     {
         int err = errno;
         esyslog("%s: unable to open '%s': %s", Name(), devname, strerror(err));
-        EOSD("%s: %s", devname, strerror(err));
+        EOSD(tr("%s: %s"), devname, strerror(err));
         return false;
     }
 
@@ -204,7 +204,7 @@ bool cRemoteDevInput::loadKeymap(const char *devname, uint32_t options)
     else
     {
         esyslog("%s: error uploading keymap to '%s'", Name(), devname);
-        Interface->Error(tr("Error uploading keymap"));
+        MSG_ERROR(tr("Error uploading keymap"));
         return false;
     }
 }
@@ -285,18 +285,18 @@ bool cRemoteDevInput::Initialize()
         {
             if (n == 0)
             {
-                Interface->Info(tr("Press any key to use pre-loaded keymap"));
+                MSG_INFO(tr("Press any key to use pre-loaded keymap"));
                 for (testKey = 0, i = 0; testKey == 0 && i < 35; i++)
                     usleep(200000);
                 if (testKey != 0)
                 {
-                    Interface->Info(tr("User-supplied keymap will be used"));
+                    MSG_INFO(tr("User-supplied keymap will be used"));
                     break;
                 }
             }
 
             kOptions = 0x0000;
-            Interface->Info(tr("Remote control test - press and hold down any key"));
+            MSG_INFO(tr("Remote control test - press and hold down any key"));
             loadKeymap(kDevname, kOptions);
             for (testKey = 0, i = 0; testKey == 0 && i < 10; i++)
                 usleep(200000);
@@ -315,7 +315,7 @@ bool cRemoteDevInput::Initialize()
 			break;
 		    }
 		}
-                Interface->Info(tr("RC5 protocol detected"));
+                MSG_INFO(tr("RC5 protocol detected"));
                 sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
             }
@@ -339,7 +339,7 @@ bool cRemoteDevInput::Initialize()
                         break;
                     }
                 }
-                Interface->Info(tr("RC5 protocol detected (inverted signal)"));
+                MSG_INFO(tr("RC5 protocol detected (inverted signal)"));
                 sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
             }
@@ -350,7 +350,7 @@ bool cRemoteDevInput::Initialize()
                 usleep(200000);
             if (testKey != 0)
             {
-                Interface->Info(tr("RCMM protocol detected"));
+                MSG_INFO(tr("RCMM protocol detected"));
                 sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
             }
@@ -361,7 +361,7 @@ bool cRemoteDevInput::Initialize()
                 usleep(200000);
             if (testKey != 0)
             {
-                Interface->Info(tr("RCMM protocol detected (inverted signal)"));
+                MSG_INFO(tr("RCMM protocol detected (inverted signal)"));
                 sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
             }
@@ -369,7 +369,7 @@ bool cRemoteDevInput::Initialize()
 
         if (testKey == 0)
         {
-            Interface->Error(tr("No remote control detected"));
+            MSG_ERROR(tr("No remote control detected"));
             esyslog("%s: no remote control detected", device);
             usleep(5000000);
             testMode = false;
@@ -687,16 +687,21 @@ bool cPluginRemote::Start(void)
     {
         switch (devtyp[i])
         {
+#ifdef REMOTE_FEATURE_LIRC
+            case 'l':
+                fh[i] = access(devnam[i], R_OK);
+                break;
+#endif
+            case 'p':
+                fh[i] = 0;
+                break;
+
             case 'T':
                 fh[i] = open(devnam[i], O_RDWR);
                 break;
 
             default:
                 fh[i] = open(devnam[i], O_RDONLY);
-                break;
-
-            case 'p':
-                fh[i] = 0;
                 break;
         }
 

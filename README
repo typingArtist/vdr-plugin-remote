@@ -1,11 +1,11 @@
 remote - Remote Control plugin for the Video Disk Recorder (VDR)
 ================================================================
 
-Version:                      0.3.1
+Version:                      0.3.2
 
 Written by:                   Oliver Endriss <o.endriss@gmx.de>
 
-Latest version available at:  http://endriss.escape.bei.t-online.de/vdr
+Latest version available at:  http://www.escape-edv.de/endriss/vdr
 
 Requirements:                 VDR 1.1.32 or later
                               DVB or dvb-kernel driver (2003-03-31 or later)
@@ -19,7 +19,7 @@ This plugin extends the remote control capabilities of vdr.
 The following remote control devices are supported:
 
 (a) linux input device driver ('/dev/input/eventX', X=0,1,2,...)
-    - built-in remote control port of the av7110-based DVB cards
+    - built-in remote control port of the av711x-based DVB cards
       (aka full-featured cards), e.g. DVB-S Nexus [1]
     - remote control port of some budget cards, e.g. Nova-CI [2]
     - other input devices (not tested, please report success!)
@@ -40,8 +40,8 @@ Installation:
 -------------
 The Remote Control plugin is installed the same way as any other plugin:
 - cd VDR/PLUGINS/src
-- tar xfz vdr-remote-0.3.1.tgz
-- ln -s remote-0.3.1 remote
+- tar xfz vdr-remote-0.3.2.tgz
+- ln -s remote-0.3.2 remote
 - cd ../..
 - make plugins
 
@@ -175,6 +175,12 @@ vdr -P"remote -l /dev/lircd"
 vdr -P"remote -p tcp:3333"
     wait for a telnet connection on tcp port 3333
     (use 'telnet vdr 3333' to access this port)
+
+vdr -P"remote -t /dev/tty10"
+    use terminal device without 'OSD'
+
+vdr -P"remote -T /dev/tty10"
+    use terminal device with 'OSD'
 
 vdr -P"remote -i autodetect -p tcp:3333 -t /dev/tty10"
     use multiple devices

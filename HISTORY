@@ -64,3 +64,10 @@ VDR Plugin 'remote' Revision History
 - Fixed high cpu usage while waiting for a tcp connection
   (thanks to Frank Krömmelbein for reporting this one).
   Replaced delay_ms by usleep, because delay_ms does busy-waiting.
+
+
+2004-11-07: Version 0.3.2
+- Fixed to compile with vdr 1.3.7+
+- LIRC remote control fixed (thanks to Mike Gratsas).
+- OSD emulation: minor improvements.
+- Added Finnish language texts (thanks to Ville Skyttä).

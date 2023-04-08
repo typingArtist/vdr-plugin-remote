@@ -131,5 +131,5 @@ Fix for kernel 2.6 (already included in remote plugin 0.2.1 and later):
   The keybdev driver is no longer optional. All keyboards use this driver.
   Fortunately, there is a new ioctl to grab an input device in 2.6.x.
   Patch the remote plugin using
-    http://endriss.escape.bei.t-online.de/vdr/misc/remote-0.2.0_kernel-2.6_grab_device.diff
+    http://www.escape-edv.de/endriss/vdr/misc/remote-0.2.0_kernel-2.6_grab_device.diff
   and recompile the plugin.

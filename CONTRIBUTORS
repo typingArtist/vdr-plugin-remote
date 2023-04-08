@@ -3,3 +3,10 @@ please send an email to the plugin author):
 
 Frank Krömmelbein <Frank99 at vdrportal>
  for reporting that the tcp remote control is causing high cpu load
+
+Mike Gratsas <MikeGratsas at techemail dot com>
+ for fixing the LIRC remote control code
+
+Ville Skyttä <ville dot skytta at iki dot fi>
+ for translating OSD texts to the Finnish language
+

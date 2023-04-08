@@ -184,7 +184,6 @@ void cTtyStatus::OsdTitle(const char *Title)
     set_color(WHITE_BLACK);
     refresh();
     set_pos(2, 0);
-    memset (lineBuf, 0, numEntries * sizeof(char *));
 }
 
 
@@ -209,30 +208,22 @@ void cTtyStatus::OsdStatusMessage(const char *Message)
 void cTtyStatus::OsdHelpKeys(const char *Red, const char *Green,
                              const char *Yellow, const char *Blue)
 {
-    if (Red)
-    {
-        set_color(BLACK_RED);
-        set_pos(24,0);
-        print("     %-15s", Red);
-    }
-    if (Green)
-    {
-        set_color(BLACK_GREEN);
-        set_pos(24,20);
-        print("     %-15s", Green);
-    }
-    if (Yellow)
-    {
-        set_color(BLACK_YELLOW);
-        set_pos(24,40);
-        print("     %-15s", Yellow);
-    }
-    if (Blue)
-    {
-        set_color(WHITE_BLUE);
-        set_pos(24,60);
-        print("     %-15s", Blue);
-    }
+    set_color(Red ? BLACK_RED : WHITE_BLACK);
+    set_pos(24,0);
+    print("     %-15s", Red ? Red : "");
+
+    set_color(Green ? BLACK_GREEN: WHITE_BLACK);
+    set_pos(24,20);
+    print("     %-15s", Green ? Green : "");
+
+    set_color(Yellow ? BLACK_YELLOW : WHITE_BLACK);
+    set_pos(24,40);
+    print("     %-15s", Yellow ? Yellow : "");
+
+    set_color(Blue ? WHITE_BLUE : WHITE_BLACK);
+    set_pos(24,60);
+    print("     %-15s", Blue ? Blue : "");
+
     refresh();
     set_pos(2, 0);
 }
@@ -246,7 +237,7 @@ void cTtyStatus::OsdItem(const char *Text, int Index)
     {
         int oldNumEntries = numEntries;
         numEntries = Index + 100;
-        lineBuf = (const char **) realloc((void *)lineBuf, numEntries * sizeof(char *));
+        lineBuf = (char **) realloc((void *)lineBuf, numEntries * sizeof(char *));
         if (lineBuf == NULL)
         {
             numEntries = 0;
@@ -258,7 +249,9 @@ void cTtyStatus::OsdItem(const char *Text, int Index)
 
     if (Text && 0 <= Index && Index < numEntries)
     {
-        lineBuf[Index] = Text;
+        if (lineBuf[Index] != NULL)
+            free(lineBuf[Index]);
+        lineBuf[Index] = strdup(Text);
         lastIndex = Index;
     }
 }
@@ -289,7 +282,9 @@ void cTtyStatus::OsdCurrentItem(const char *Text)
         else
         {
             // not found, item changed
-            lineBuf[currIndex] = Text;
+            if (lineBuf[currIndex] != NULL)
+                free(lineBuf[currIndex]);
+            lineBuf[currIndex] = strdup(Text);
         }
 
         first = min(currIndex-10,lastIndex-20);
@@ -397,4 +392,13 @@ cTtyStatus::cTtyStatus(int f)
 
 cTtyStatus::~cTtyStatus(void)
 {
+    if (lineBuf && numEntries > 0)
+    {
+        for (int i = 0; i < numEntries; i++)
+        {
+            if (lineBuf[i])
+                free(lineBuf[i]);
+        }
+        free(lineBuf);
+    }
 }

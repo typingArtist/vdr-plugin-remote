@@ -108,3 +108,12 @@ VDR Plugin 'remote' Revision History
 2006-12-03: Version 0.3.9
 - Added Russian language texts (thanks to Waldemar Nikel).
 - Replaced uint64 by uint64_t for APIVERSION >= 1.4.5.
+
+
+2007-10-06: Version 0.4.0
+- Implemented gettext support for VDR >= 1.5.7,
+  i18n is still used for older vdr releases.
+- If supported by udev, an input device can be selected by pci slot now.
+  For example:
+    vdr -P"remote -i /dev/input/by-path/pci-0000:02:06.0--event-ir"
+  (Thanks to Joachim Selinger for suggesting to add this feature.)

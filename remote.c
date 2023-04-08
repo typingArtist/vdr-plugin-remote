@@ -26,10 +26,16 @@
 
 #define NUMREMOTES      10        // maximum number of remote control devices
  
-#define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
+#define AV7110_KEYMAP_DEVICE      "/proc/av7110_ir"
+#if 0
+#define PROC_INPUT_DEVICES        "/proc/bus/input/devices"
+#define AV7110_PARM_DEVICE_MASK   "/sys/module/dvb_ttpci/parameters/ir_device_mask"
+#define AV7110_PARM_PROTOCOL      "/sys/module/dvb_ttpci/parameters/ir_protocol"
+#define AV7110_PARM_INVERSION     "/sys/module/dvb_ttpci/parameters/ir_inversion"
+#endif
 
-static const char *VERSION        = "0.3.9";
-static const char *DESCRIPTION    = "Remote control";
+static const char *VERSION        = "0.4.0";
+static const char *DESCRIPTION    = trNOOP("Remote control");
 
 
 
@@ -298,16 +304,16 @@ bool cRemoteDevInput::Initialize()
     testMode = true;
 
     char setupStr[256]; memset (setupStr, 0, sizeof setupStr);
-		
+
     // load keymap for full-featured cards
     if (identifyInputDevice(fh, device) == 1)
     {
-        char *kDevname = "/proc/av7110_ir";
+        char *kDevname = AV7110_KEYMAP_DEVICE;
         uint32_t kOptions;
         int kAddr = -1;
         int i, n;
 
-	for (n = 0; n < 2; n++)
+        for (n = 0; n < 2; n++)
         {
             if (n == 0)
             {
@@ -338,9 +344,9 @@ bool cRemoteDevInput::Initialize()
                     if (testKey != 0)
                     {
                         kAddr = a;
-			break;
-		    }
-		}
+                        break;
+                    }
+                }
                 MSG_INFO(tr("RC5 protocol detected"));
                 sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
@@ -597,7 +603,7 @@ cPluginRemote::~cPluginRemote()
 const char *cPluginRemote::CommandLineHelp(void)
 // ---------------------------------------------------------------------------
 {
-    return "  -i dev,   --input=dev    kernel input device (/dev/input/...)\n"
+    return "  -i dev,   --input=dev    input device (/dev/input/... | autodetect)\n"
 #ifdef REMOTE_FEATURE_LIRC
            "  -l dev,   --lirc=dev     lirc device (/dev/lircd)\n"
 #endif
@@ -641,7 +647,7 @@ bool cPluginRemote::ProcessArgs(int argc, char *argv[])
               }
               devtyp[devcnt] = c;
               devnam[devcnt] = optarg;
-	      devcnt++;
+              devcnt++;
               break;
 
           default:
@@ -660,8 +666,10 @@ bool cPluginRemote::Start(void)
 {
     bool ok = false;
 
+#if APIVERSNUM <= 10506
     // translations
     RegisterI18n(remotePhrases);
+#endif
 
     // no device specified by the user, set default
     if (devcnt == 0)
@@ -693,7 +701,7 @@ bool cPluginRemote::Start(void)
                     }
                     break;
                 }
-		
+
                 if (identifyInputDevice(fh[i], nam) >= 1)
                 {
                     // found DVB card receiver
@@ -709,11 +717,23 @@ bool cPluginRemote::Start(void)
 
         // use default device if nothing could be identified
         if (devtyp[i] == 'i' && strcmp(devnam[i], "autodetect") == 0)
-            devnam[i] = "/dev/input/event0";
+            devnam[i] = "/dev/input/ir";
     } // for i
 
     for (int i = 0; i < devcnt; i++)
     {
+        // build name for remote.conf
+        char *nam = NULL;
+        char *cp = strrchr(devnam[i], '/');
+        if (cp)
+            asprintf(&nam, "%s-%s", Name(), cp+1);
+        else
+            asprintf(&nam, "%s-%s", Name(), devnam[i]);
+        if (!nam)
+            continue;
+
+        strreplace(nam, '.', '_');
+
         switch (devtyp[i])
         {
 #ifdef REMOTE_FEATURE_LIRC
@@ -739,22 +759,15 @@ bool cPluginRemote::Start(void)
             esyslog("%s: unable to open '%s': %s",
                     Name(), devnam[i], strerror(errno));
             EOSD(tr("%s: %s"), devnam[i], strerror(errno));
+            free(nam);
             continue;
         }
-	
+
         // at least, one device opened successfully
         ok = true;
         dsyslog("%s: using '%s'", Name(), devnam[i]);
 
-        // build name for remote.conf
-        char nam[25];
-        char *cp = strrchr(devnam[i], '/');
-	if (cp)
-            sprintf (nam, "%s-%s", Name(), cp+1);
-        else
-            sprintf (nam, "%s-%s", Name(), devnam[i]);
-
-	switch (devtyp[i])
+        switch (devtyp[i])
         {
             case 'i':
                 new cRemoteDevInput(nam,fh[i],devnam[i]);
@@ -783,6 +796,8 @@ bool cPluginRemote::Start(void)
                 new cRemoteDevTty(nam,fh[i],devnam[i]);
                 break;
         }
+
+        free(nam);
     } // for
     
     if (!ok)

@@ -14,7 +14,10 @@
 #include <vdr/i18n.h>
 
 
+#if APIVERSNUM <= 10506
+#define trNOOP(s) (s)
 extern const tI18nPhrase remotePhrases[];
+#endif
 
 
 #endif // __PLUGIN_REMOTE_I18N_H

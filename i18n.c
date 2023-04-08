@@ -10,6 +10,7 @@
  * French	Pierre Briec <eclipse dot vdr at gmail dot com>
  * Italian	Nicola Franchi <franchi at cefriel dot it>
  * Polish	Jakub Wolnicki
+ * Russian	Waldemar Nikel
  */
 
 #include "i18n.h"

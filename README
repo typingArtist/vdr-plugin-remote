@@ -1,7 +1,7 @@
 remote - Remote Control plugin for the Video Disk Recorder (VDR)
 ================================================================
 
-Version:                      0.3.9
+Version:                      0.4.0
 
 Written by:                   Oliver Endriss <o.endriss@gmx.de>
 
@@ -40,8 +40,8 @@ Installation:
 -------------
 The Remote Control plugin is installed the same way as any other plugin:
 - cd VDR/PLUGINS/src
-- tar xfz vdr-remote-0.3.9.tgz
-- ln -s remote-0.3.9 remote
+- tar xfz vdr-remote-0.4.0.tgz
+- ln -s remote-0.4.0 remote
 - cd ../..
 - make plugins
 
@@ -171,10 +171,13 @@ Examples:
 vdr -Premote
 vdr -P"remote -i autodetect"
     Try to autodetect device '/dev/input/eventX' (X = 0,1,2,...).
-    If no device can be identified, '-i /dev/input/event0' is used.
+    If no device can be identified, '-i /dev/input/ir' is used.
 
 vdr -P"remote -i /dev/input/event2"
     use specified input device '/dev/input/event2'
+
+vdr -P"remote -i /dev/input/by-path/pci-0000:02:06.0--event-ir"
+    select input device by pci slot (udev support required)
 
 vdr -P"remote -l /dev/lircd"
     select LIRC remote control

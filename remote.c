@@ -796,7 +796,7 @@ bool cPluginRemote::Start(void)
 
 #ifdef REMOTE_FEATURE_LIRC
             case 'l':
-                new cLircRemote(devnam[i]); // use vdr's lirc code
+                cLircRemote::NewLircRemote(devnam[i]); // use vdr's lirc code
                 break;
 #endif
 #ifdef REMOTE_FEATURE_LIRCOLD

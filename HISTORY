@@ -48,3 +48,12 @@ VDR Plugin 'remote' Revision History
   See README for details when these patches should be applied.
 - Minor code clean-up.
 - Makefile: added -D_GNU_SOURCE to make plugin compatible with vdr patches.
+
+
+2004-04-22: Version 0.3.0
+- New keyword '-i autodetect', Autodetect mode can be used together
+  with other command line options.
+- LIRC remote control (option '-l'). It just starts the LIRC code of vdr.
+  Please note that I do not use LIRC and cannot provide any support.
+- TCP/telnet remote control (option '-p').
+- 'OSD' emulation for TTY (option '-T') and TCP remote control (option '-p').

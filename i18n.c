@@ -1,12 +1,11 @@
 /*
- * i18n.c: Internationalization
- *
  * Remote Control plugin for the Video Disk Recorder
+ *
+ * i18n.c: Internationalization
  *
  * See the README file for copyright information and how to reach the author.
  *
  * Translations provided by:
- *
  */
 
 #include "i18n.h"

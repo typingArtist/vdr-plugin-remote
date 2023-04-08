@@ -1,61 +1,36 @@
 /*
- * remote.c: Remote Control plugin for the Video Disk Recorder
+ * Remote Control plugin for the Video Disk Recorder
+ *
+ * remote.c: main source file
  *
  * See the README file for copyright information and how to reach the author.
- *
  */
 
+
 #include <vdr/plugin.h>
-#include <vdr/remote.h>
-#include <vdr/thread.h>
+#ifdef REMOTE_FEATURE_LIRC
+#include <vdr/lirc.h>
+#endif
 #include <stdio.h>
 #include <sys/fcntl.h>
 #include <getopt.h>
 #include <termios.h>
 #include <linux/input.h>
 #include "i18n.h"
+#include "remote.h"
+#ifdef REMOTE_FEATURE_TCPIP
+#include "remotetcp.h"
+#endif
+#include "ttystatus.h"
 
-#define NUMREMOTES      5         // maximum number of remote control devices
 
+#define NUMREMOTES      10        // maximum number of remote control devices
+ 
 #define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
 
-static const char *VERSION        = "0.2.1";
+static const char *VERSION        = "0.3.0";
 static const char *DESCRIPTION    = "Remote control";
 
-//#define DEBUG
-
-#ifdef DEBUG
-#define DSYSLOG(x...)    dsyslog(x)
-#else
-#define DSYSLOG(x...)
-#endif
-
-// display error message with parameters on OSD
-#define EOSD(fmt,parms...)     {  char msg[132]; \
-                                  snprintf(msg, sizeof msg, fmt, parms); \
-                                  Interface->Error(msg); \
-                                  Interface->Error(msg); /* repeat once */ }
-
-
-
-/*****************************************************************************/
-class cRemoteGeneric : protected cRemote, protected cThread
-/*****************************************************************************/
-{
-protected:
-  static const uint64 INVALID_KEY = (uint64) -1;
-  int fh;
-  char *device;
-  int polldelay;
-  int repeatdelay;
-  int repeatfreq;
-  int repeattimeout;
-  cRemoteGeneric(const char *name, int f, char *d);
-  virtual ~cRemoteGeneric();
-  virtual uint64 getKey(void) = 0;
-  virtual bool keyPressed(uint64 code) = 0;
-  virtual void Action(void);
-};
 
 
 // ---------------------------------------------------------------------------
@@ -77,6 +52,14 @@ cRemoteGeneric::~cRemoteGeneric()
 // ---------------------------------------------------------------------------
 {
     Cancel();
+}
+
+
+// ---------------------------------------------------------------------------
+bool cRemoteGeneric::Put(uint64 Code, bool Repeat, bool Release)
+// ---------------------------------------------------------------------------
+{
+    return cRemote::Put(Code, Repeat, Release);
 }
 
 
@@ -150,22 +133,7 @@ void cRemoteGeneric::Action(void)
 }
 
 
-
 /*****************************************************************************/
-class cRemoteDevInput : protected cRemoteGeneric
-/*****************************************************************************/
-{
-private:
-  bool testMode;
-  uint64 testKey;
-  bool loadKeymap(const char *devname, uint32_t options);
-protected:
-  virtual uint64 getKey(void);
-  virtual bool keyPressed(uint64 code);
-public:
-  cRemoteDevInput(const char *name, int f, char *d);
-  virtual bool Initialize(void);
-};
 
 
 // ---------------------------------------------------------------------------
@@ -189,10 +157,12 @@ int identifyInputDevice(const int fh)
     if (ioctl(fh, EVIOCGNAME(sizeof(description)), description) < 0)
         return -1;
 
+    // dsyslog("%s: %s", __FUNCTION__, description);
+
     if (!strcmp(description, "DVB on-card IR receiver"))
         return 1;
 
-    if (strstr(description, "dvb"))
+    if (strstr(description, "DVB") || strstr(description, "dvb"))
         return 2;
 
     return 0;
@@ -451,21 +421,10 @@ bool cRemoteDevInput::keyPressed(uint64 code)
 }
 
 
-
-#ifdef OLD_LIRC
 /*****************************************************************************/
-class cRemoteDevLirc : protected cRemoteGeneric
-/*****************************************************************************/
-{
-protected:
-  virtual uint64 getKey(void);
-  virtual bool keyPressed(uint64 code);
-public:
-  cRemoteDevLirc(const char *name, int f, char *d)
-  :cRemoteGeneric(name, f, d) { Start(); }
-};
 
 
+#ifdef REMOTE_FEATURE_LIRCOLD
 // ---------------------------------------------------------------------------
 uint64 cRemoteDevLirc::getKey(void)
 // ---------------------------------------------------------------------------
@@ -487,23 +446,10 @@ bool cRemoteDevLirc::keyPressed(uint64 code)
 {
     return (code & 0x80);
 }
-#endif // OLD_LIRC
-
+#endif // REMOTE_FEATURE_LIRCOLD
 
 
 /*****************************************************************************/
-class cRemoteDevTty : protected cRemoteGeneric
-/*****************************************************************************/
-{
-private:
-  struct termios tm;
-protected:
-  virtual uint64 getKey(void);
-  virtual bool keyPressed(uint64 code);
-public:
-  cRemoteDevTty(const char *name, int f, char *d);
-  virtual ~cRemoteDevTty(); 
-};
 
 
 // ---------------------------------------------------------------------------
@@ -521,7 +467,8 @@ cRemoteDevTty::cRemoteDevTty(const char *name, int f, char *d)
     }
     polldelay     = 0;
     repeattimeout = 80;
-    Start();
+    if (f >= 0)
+        Start();
 }
 
 
@@ -550,6 +497,19 @@ bool cRemoteDevTty::keyPressed(uint64 code)
 // ---------------------------------------------------------------------------
 {
     return true;
+}
+
+
+// ---------------------------------------------------------------------------
+bool cRemoteDevTty::Put(uint64 Code, bool Repeat, bool Release)
+// ---------------------------------------------------------------------------
+{
+    bool rc = cRemote::Put(Code, Repeat, Release);
+
+    if (!rc && Code <= 0xff)
+        rc = cRemote::Put(KBDKEY(Code));
+
+    return rc;
 }
 
 
@@ -609,10 +569,17 @@ const char *cPluginRemote::CommandLineHelp(void)
 // ---------------------------------------------------------------------------
 {
     return "  -i dev,   --input=dev    kernel input device (/dev/input/...)\n"
-#ifdef OLD_LIRC
+#ifdef REMOTE_FEATURE_LIRC
+           "  -l dev,   --lirc=dev     lirc device (/dev/lircd)\n"
+#endif
+#ifdef REMOTE_FEATURE_LIRCOLD
            "  -l dev,   --lirc=dev     kernel lirc device (/dev/lirc)\n"
 #endif
-           "  -t dev,   --tty=dev      tty device\n";
+#ifdef REMOTE_FEATURE_TCPIP
+           "  -p tcp:n, --port=tcp:n   listen on tcp port <n>\n"
+#endif
+           "  -t dev,   --tty=dev      tty device\n"
+           "  -T dev,   --TTY=dev      tty device with 'OSD'\n";
 }
 
 
@@ -622,20 +589,22 @@ bool cPluginRemote::ProcessArgs(int argc, char *argv[])
 {
     static struct option long_options[] =
             { { "input", required_argument, NULL, 'i' },
-#ifdef OLD_LIRC
               { "lirc",  required_argument, NULL, 'l' },
-#endif
+              { "port",  required_argument, NULL, 'p' },
               { "tty",   required_argument, NULL, 't' },
+              { "TTY",   required_argument, NULL, 'T' },
               { NULL } };
     int c;
 
-    while ((c = getopt_long(argc, argv, "i:l:t:", long_options, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "i:l:p:t:T:", long_options, NULL)) != -1)
     {
         switch (c)
         {
           case 'i':
           case 'l':
+          case 'p':
           case 't':
+          case 'T':
               if (devcnt >= NUMREMOTES)
               {
                   esyslog("%s: too many remotes", Name());
@@ -665,57 +634,72 @@ bool cPluginRemote::Start(void)
     // translations
     RegisterI18n(remotePhrases);
 
-    // defaults
+    // no device specified by the user, set default
     if (devcnt == 0)
     {
-        /* no device specified by the user, probe eventX devices */
-        for (int i = 0; devcnt < NUMREMOTES; i++)
+        devtyp[0] = 'i';
+        devnam[0] = "autodetect";
+        devcnt = 1;
+    }
+
+    /* probe eventX devices */
+    for (int i = 0; i < devcnt; i++)
+    {
+        if (devtyp[i] == 'i' && strcmp(devnam[i], "autodetect") == 0)
         {
-            char nam[80]; 
-            sprintf(nam, "/dev/input/event%d", i);
+            char nam[80];
 
-            fh[devcnt] = open(nam, O_RDONLY);
-            if (fh[devcnt] < 0)
+            for (int j = 0; ; j++)
             {
-                switch (errno)
+                sprintf(nam, "/dev/input/event%d", j);
+                fh[i] = open(nam, O_RDONLY);
+                if (fh[i] < 0)
                 {
-                    case EACCES:
-                        // permission denied: ignore device
-                        continue;
-
-                    default:
-                        // no more devices: stop scanning
-                        break;
+                    switch (errno)
+                    {
+                        case EACCES:   // permission denied: ignore device
+                            continue;
+                        default:       // no more devices: stop scanning
+                            break;
+                    }
+                    break;
                 }
-                break;
-            }
+		
+                if (identifyInputDevice(fh[i]) >= 1)
+                {
+                    // found DVB card receiver
+                    devnam[i] = strdup(nam);
+                    close(fh[i]);
+                    break;
+                }
 
-            if (identifyInputDevice(fh[devcnt]) >= 1)
-            {
-                // found DVB card receiver
-                close(fh[devcnt]);
-                devnam[devcnt] = strdup(nam);
-                devtyp[devcnt] = 'i';
-                devcnt++;
-                break;
-            }
-
-            // unknown device
-            close(fh[devcnt]);
-        }
+                // unknown device, try next one
+                close(fh[i]);
+            } // for j
+        } // if autodetect
 
         // use default device if nothing could be identified
-        if (devcnt == 0)
-        {
-            devtyp[0] = 'i';
-            devnam[0] = "/dev/input/event0";
-            devcnt = 1;
-        }
-    }
+        if (devtyp[i] == 'i' && strcmp(devnam[i], "autodetect") == 0)
+            devnam[i] = "/dev/input/event0";
+    } // for i
 
     for (int i = 0; i < devcnt; i++)
     {
-        fh[i] = open(devnam[i], O_RDONLY);
+        switch (devtyp[i])
+        {
+            case 'T':
+                fh[i] = open(devnam[i], O_RDWR);
+                break;
+
+            default:
+                fh[i] = open(devnam[i], O_RDONLY);
+                break;
+
+            case 'p':
+                fh[i] = 0;
+                break;
+        }
+
         if (fh[i] < 0)
         {
             esyslog("%s: unable to open '%s': %s",
@@ -734,7 +718,7 @@ bool cPluginRemote::Start(void)
 	if (cp)
             sprintf (nam, "%s-%s", Name(), cp+1);
         else
-            sprintf (nam, "%s-%u", Name(), i);
+            sprintf (nam, "%s-%s", Name(), devnam[i]);
 
 	switch (devtyp[i])
         {
@@ -742,17 +726,30 @@ bool cPluginRemote::Start(void)
                 new cRemoteDevInput(nam,fh[i],devnam[i]);
                 break;
 
-#ifdef OLD_LIRC
+#ifdef REMOTE_FEATURE_LIRC
+            case 'l':
+                new cLircRemote(devnam[i]); // use vdr's lirc code
+                break;
+#endif
+#ifdef REMOTE_FEATURE_LIRCOLD
             case 'l':
                 new cRemoteDevLirc(nam,fh[i],devnam[i]);
                 break;
 #endif
 
+#ifdef REMOTE_FEATURE_TCPIP
+            case 'p':
+                new cTcpRemote(nam, -1, devnam[i]);
+                break;
+#endif
+            case 'T':
+                new cTtyStatus(fh[i]);
+                // fall thru
             case 't':
                 new cRemoteDevTty(nam,fh[i],devnam[i]);
                 break;
         }
-    }
+    } // for
     
     if (!ok)
         esyslog("%s: fatal error - unable to open input device", Name());

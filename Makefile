@@ -45,9 +45,16 @@ INCLUDES += -I$(VDRDIR)/include -I$(DVBDIR)/include
 DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 DEFINES += -D_GNU_SOURCE
 
+# optional components
+DEFINES += -DREMOTE_FEATURE_LIRC
+DEFINES += -DREMOTE_FEATURE_TCPIP
+
 ### The object files (add further files here):
 
-OBJS = $(PLUGIN).o i18n.o
+OBJS = $(PLUGIN).o i18n.o ttystatus.o
+ifneq (, $(findstring REMOTE_FEATURE_TCPIP, $(DEFINES)))
+OBJS += remotetcp.o
+endif
 
 ### Implicit rules:
 

@@ -1,16 +1,14 @@
 /*
- * i18n.c: Internationalization
- *
  * Remote Control plugin for the Video Disk Recorder
  *
- * See the README file for copyright information and how to reach the author.
+ * i18n.h: Internationalization
  *
- * $Id$
+ * See the README file for copyright information and how to reach the author.
  */
 
 
-#ifndef __REMOTE_I18N_H
-#define __REMOTE_I18N_H
+#ifndef __PLUGIN_REMOTE_I18N_H
+#define __PLUGIN_REMOTE_I18N_H
 
 
 #include <vdr/i18n.h>
@@ -19,4 +17,4 @@
 extern const tI18nPhrase remotePhrases[];
 
 
-#endif //__REMOTE_I18N_H
+#endif // __PLUGIN_REMOTE_I18N_H

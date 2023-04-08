@@ -25,7 +25,7 @@ private:
   cSocket *csock;
 
 protected:
-  virtual uint64 getKey(void);
+  virtual uint64_t getKey(void);
 
 public:
   cTcpRemote(const char *name, int f, char *d);

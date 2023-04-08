@@ -32,7 +32,7 @@
     "Romaneste",
     "Magyar",
     "Catalр",
-    "Рaсский", // Russian
+    "Русский", // Russian
   },
 */
 
@@ -56,7 +56,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Пульт управления",
 #endif
   },
 
@@ -77,7 +77,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Нажмите любую кнопку для использования ранее загруженой раскладки",
 #endif
   },
 
@@ -98,7 +98,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Будет использоваться раскладка пользователя",
 #endif
   },
 
@@ -120,7 +120,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Проверка пульта - нажмите и удержите любую кнопку",
 #endif
   },
 
@@ -141,7 +141,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Опознан протокол RC5",
 #endif
   },
 
@@ -162,7 +162,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Опознан протокол RC5 (с инвертированием сигнала)",
 #endif
   },
 
@@ -183,7 +183,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Опознан протокол RCMM",
 #endif
   },
 
@@ -204,7 +204,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Опознан протокол RCMM (с инвертированием сигнала)",
 #endif
   },
 
@@ -225,7 +225,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Пульт управления не опознан",
 #endif
   },
 
@@ -246,7 +246,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "Ошибка при загрузке раскладки",
 #endif
   },
 
@@ -267,7 +267,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
 #if VDRVERSNUM >= 10302
-    "",
+    "%s: %s",
 #endif
   },
 

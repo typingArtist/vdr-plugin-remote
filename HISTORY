@@ -103,3 +103,8 @@ VDR Plugin 'remote' Revision History
 - Added Italian language texts (thanks to Nicola Franchi).
 - Added Polish language texts (thanks to Jakub Wolnicki).
 - Fixed cTtyStatus::SetVolume() for API version 1.4.2.
+
+
+2006-12-03: Version 0.3.9
+- Added Russian language texts (thanks to Waldemar Nikel).
+- Replaced uint64 by uint64_t for APIVERSION >= 1.4.5.

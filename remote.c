@@ -28,7 +28,7 @@
  
 #define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
 
-static const char *VERSION        = "0.3.8";
+static const char *VERSION        = "0.3.9";
 static const char *DESCRIPTION    = "Remote control";
 
 
@@ -56,7 +56,7 @@ cRemoteGeneric::~cRemoteGeneric()
 
 
 // ---------------------------------------------------------------------------
-bool cRemoteGeneric::Put(uint64 Code, bool Repeat, bool Release)
+bool cRemoteGeneric::Put(uint64_t Code, bool Repeat, bool Release)
 // ---------------------------------------------------------------------------
 {
     return cRemote::Put(Code, Repeat, Release);
@@ -72,7 +72,7 @@ void cRemoteGeneric::Action(void)
 #else
     cTimeMs first, rate, timeout;
 #endif
-    uint64 code, lastcode = INVALID_KEY;
+    uint64_t code, lastcode = INVALID_KEY;
     bool repeat = false;
 
     for (;;)
@@ -412,12 +412,12 @@ bool cRemoteDevInput::Initialize()
 
 
 // ---------------------------------------------------------------------------
-uint64 cRemoteDevInput::getKey(void)
+uint64_t cRemoteDevInput::getKey(void)
 // ---------------------------------------------------------------------------
 {
     struct input_event ev;
     int n;
-    uint64 code;
+    uint64_t code;
 
     do
         n = read(fh, &ev, sizeof ev);
@@ -427,7 +427,7 @@ uint64 cRemoteDevInput::getKey(void)
     {
         if (ev.value)
             ev.value = 1;
-        code = ((uint64)ev.value << 32) | ((uint64)ev.type << 16) | (uint64)ev.code;
+        code = ((uint64_t)ev.value << 32) | ((uint64_t)ev.type << 16) | (uint64_t)ev.code;
     }
     else
         code = INVALID_KEY;
@@ -443,7 +443,7 @@ uint64 cRemoteDevInput::getKey(void)
 
 
 // ---------------------------------------------------------------------------
-bool cRemoteDevInput::keyPressed(uint64 code)
+bool cRemoteDevInput::keyPressed(uint64_t code)
 // ---------------------------------------------------------------------------
 {
     return (code & 0xFFFF00000000ULL);
@@ -455,7 +455,7 @@ bool cRemoteDevInput::keyPressed(uint64 code)
 
 #ifdef REMOTE_FEATURE_LIRCOLD
 // ---------------------------------------------------------------------------
-uint64 cRemoteDevLirc::getKey(void)
+uint64_t cRemoteDevLirc::getKey(void)
 // ---------------------------------------------------------------------------
 {
     unsigned long code;
@@ -465,12 +465,12 @@ uint64 cRemoteDevLirc::getKey(void)
     if (n != sizeof code)
         return INVALID_KEY;
     else
-        return (uint64)code;
+        return (uint64_t)code;
 }
 
 
 // ---------------------------------------------------------------------------
-bool cRemoteDevLirc::keyPressed(uint64 code)
+bool cRemoteDevLirc::keyPressed(uint64_t code)
 // ---------------------------------------------------------------------------
 {
     return (code & 0x80);
@@ -510,11 +510,11 @@ cRemoteDevTty::~cRemoteDevTty()
 
 
 // ---------------------------------------------------------------------------
-uint64 cRemoteDevTty::getKey(void)
+uint64_t cRemoteDevTty::getKey(void)
 // ---------------------------------------------------------------------------
 {
     int n;
-    uint64 code = 0;
+    uint64_t code = 0;
 
     n = read(fh, &code, sizeof code);
     return (n > 0) ? code : INVALID_KEY;
@@ -522,7 +522,7 @@ uint64 cRemoteDevTty::getKey(void)
 
 
 // ---------------------------------------------------------------------------
-bool cRemoteDevTty::keyPressed(uint64 code)
+bool cRemoteDevTty::keyPressed(uint64_t code)
 // ---------------------------------------------------------------------------
 {
     return true;
@@ -530,7 +530,7 @@ bool cRemoteDevTty::keyPressed(uint64 code)
 
 
 // ---------------------------------------------------------------------------
-bool cRemoteDevTty::Put(uint64 Code, bool Repeat, bool Release)
+bool cRemoteDevTty::Put(uint64_t Code, bool Repeat, bool Release)
 // ---------------------------------------------------------------------------
 {
     bool rc = cRemote::Put(Code, Repeat, Release);

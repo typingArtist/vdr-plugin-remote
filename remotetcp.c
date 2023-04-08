@@ -36,7 +36,7 @@ cTcpRemote::~cTcpRemote()
 }		  
 
 
-uint64 cTcpRemote::getKey(void)
+uint64_t cTcpRemote::getKey(void)
 {
     if (csock == NULL)
     {
@@ -80,7 +80,7 @@ uint64 cTcpRemote::getKey(void)
     }
 
 
-    uint64 key = cRemoteDevTty::getKey();
+    uint64_t key = cRemoteDevTty::getKey();
 
     if (key == INVALID_KEY)
     {

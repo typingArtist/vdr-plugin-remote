@@ -36,6 +36,10 @@
                                   MSG_ERROR(msg); \
                                   MSG_ERROR(msg); /* repeat once */ }
 
+#if APIVERSNUM <= 10404
+#define uint64_t	uint64
+#endif
+
 
 
 /*****************************************************************************/
@@ -43,7 +47,7 @@ class cRemoteGeneric : protected cRemote, protected cThread
 /*****************************************************************************/
 {
 protected:
-  static const uint64 INVALID_KEY = (uint64) -1;
+  static const uint64_t INVALID_KEY = (uint64_t) -1;
   int fh;
   char *device;
   int polldelay;
@@ -52,9 +56,9 @@ protected:
   int repeattimeout;
   cRemoteGeneric(const char *name, int f, char *d);
   virtual ~cRemoteGeneric();
-  virtual uint64 getKey(void) = 0;
-  virtual bool keyPressed(uint64 code) = 0;
-  virtual bool Put(uint64 Code, bool Repeat = false, bool Release = false);
+  virtual uint64_t getKey(void) = 0;
+  virtual bool keyPressed(uint64_t code) = 0;
+  virtual bool Put(uint64_t Code, bool Repeat = false, bool Release = false);
   virtual void Action(void);
 };
 
@@ -66,11 +70,11 @@ class cRemoteDevInput : protected cRemoteGeneric
 {
 private:
   bool testMode;
-  uint64 testKey;
+  uint64_t testKey;
   bool loadKeymap(const char *devname, uint32_t options);
 protected:
-  virtual uint64 getKey(void);
-  virtual bool keyPressed(uint64 code);
+  virtual uint64_t getKey(void);
+  virtual bool keyPressed(uint64_t code);
 public:
   cRemoteDevInput(const char *name, int f, char *d);
   virtual bool Initialize(void);
@@ -84,8 +88,8 @@ class cRemoteDevLirc : protected cRemoteGeneric
 /*****************************************************************************/
 {
 protected:
-  virtual uint64 getKey(void);
-  virtual bool keyPressed(uint64 code);
+  virtual uint64_t getKey(void);
+  virtual bool keyPressed(uint64_t code);
 public:
   cRemoteDevLirc(const char *name, int f, char *d)
     :cRemoteGeneric(name, f, d) { Start(); }
@@ -101,9 +105,9 @@ class cRemoteDevTty : protected cRemoteGeneric
 private:
   struct termios tm;
 protected:
-  virtual uint64 getKey(void);
-  virtual bool keyPressed(uint64 code);
-  virtual bool Put(uint64 Code, bool Repeat = false, bool Release = false);
+  virtual uint64_t getKey(void);
+  virtual bool keyPressed(uint64_t code);
+  virtual bool Put(uint64_t Code, bool Repeat = false, bool Release = false);
 public:
   cRemoteDevTty(const char *name, int f, char *d);
   virtual ~cRemoteDevTty(); 

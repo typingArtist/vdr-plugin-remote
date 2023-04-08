@@ -3,14 +3,30 @@
  *
  * i18n.c: Internationalization
  *
- * See the README file for copyright information and how to reach the author.
+ * Copyright (C) 2002-2012 Oliver Endriss <o.endriss@gmx.de>
  *
  * Translations provided by:
- * Finnish	Ville Skyttä <ville dot skytta at iki dot fi>
- * French	Pierre Briec <eclipse dot vdr at gmail dot com>
- * Italian	Nicola Franchi <franchi at cefriel dot it>
- * Polish	Jakub Wolnicki
- * Russian	Waldemar Nikel
+ * Finnish      Ville Skyttä <ville dot skytta at iki dot fi>
+ * French       Pierre Briec <eclipse dot vdr at gmail dot com>
+ * Italian      Nicola Franchi <franchi at cefriel dot it>
+ * Italian      Gringo <vdr-italian@tiscali.it>
+ * Polish       Jakub Wolnicki
+ * Russian      Waldemar Nikel
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
 #include "i18n.h"
@@ -64,7 +80,7 @@ const tI18nPhrase remotePhrases[] = {
   { "Press any key to use pre-loaded keymap",
     "Taste drücken, um zuvor geladene Keymap zu verwenden",
     "",
-    "Premi un tasto per usare una mappa dei tasti pre-caricata",
+    "Premi un tasto per usare una tabella dei tasti precaricata",
     "",
     "",
     "Appuyez sur une touche pour utiliser un Keymap préchargé",
@@ -107,7 +123,7 @@ const tI18nPhrase remotePhrases[] = {
   { "Remote control test - press and hold down any key",
     "Test der Fernbedienung - beliebige Taste gedrückt halten",
     "",
-    "Test del telecomando - premi e tieni premuto un tasto",
+    "Prova telecomando - premi e tieni premuto un tasto",
     "",
     "",
     "Test télécommande - Appuyer et maintenir une touche enfoncée",
@@ -128,7 +144,7 @@ const tI18nPhrase remotePhrases[] = {
   { "RC5 protocol detected",
     "RC5-Protokoll erkannt",
     "",
-    "Rilevato il protocollo RC5",
+    "Rilevato protocollo RC5",
     "",
     "",
     "Protocole RC5 détecté",
@@ -149,7 +165,7 @@ const tI18nPhrase remotePhrases[] = {
   { "RC5 protocol detected (inverted signal)",
     "RC5-Protokoll erkannt (invertiertes Signal)",
     "",
-    "Rilevato il protocollo RC5 (segnale invertito)",
+    "Rilevato protocollo RC5 (segnale invertito)",
     "",
     "",
     "Protocole RC5 détecté (signal inversé)",
@@ -170,7 +186,7 @@ const tI18nPhrase remotePhrases[] = {
   { "RCMM protocol detected",
     "RCMM-Protokoll erkannt",
     "",
-    "Rilevato il protocollo RCMM",
+    "Rilevato protocollo RCMM",
     "",
     "",
     "Protocole RCMM détecté",
@@ -191,7 +207,7 @@ const tI18nPhrase remotePhrases[] = {
   { "RCMM protocol detected (inverted signal)",
     "RCMM-Protokoll erkannt (invertiertes Signal)",
     "",
-    "Rilevato il protocollo RCMM (segnale invertito)",
+    "Rilevato protocollo RCMM (segnale invertito)",
     "",
     "",
     "Protocole RCMM détecté (signal inversé)",
@@ -233,7 +249,7 @@ const tI18nPhrase remotePhrases[] = {
   { "Error uploading keymap",
     "Fehler beim Laden der Tastenbelegung",
     "",
-    "Errore nel caricamento della mappa dei tasti",
+    "Errore caricamento tabella dei tasti",
     "",
     "",
     "Erreur chargement tables de touches",

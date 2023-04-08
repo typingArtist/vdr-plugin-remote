@@ -1,4 +1,4 @@
-Remote Control Mini-FAQ (Rev 0.4.0, 2007-10-06 En)
+Remote Control Mini-FAQ (Rev 0.5.0, 2012-12-26 En)
 ==================================================
 
 1. Which hardware is supported?
@@ -7,6 +7,7 @@ Configurations which have been reported to work:
 
 card type     driver         connector      IR protocol    notes
 ---------------------------------------------------------------------
+TT S2 6400    saa716x_ff     ir connector   RC5
 Activy 300                                  RCMM
 DVB-S 1.x     dvb-ttpci      J2             RC5/RCMM       1
 DVB-S 1.x     dvb-ttpci      CI module      RC5/RCMM       1
@@ -180,9 +181,44 @@ av7110_loadkeys from the dvb-apps package.
 Have a look at the script 'runvdr.remote' in sub-directory 'misc'.
 
 
+-------------------------------------------------------------------------------
 
-3.6 More information
-    ----------------
+
+4. Telnet
+   ------
+
+4.1 Terminating the telnet session
+    ------------------------------
+Any telnet session can be terminated by 'escape character' c (close).
+The escape character will be displayed when telnet is started,
+default is Ctrl-].
+
+
+4.2 Key mapping example
+    -------------------
+VDR is able to learn the telnet keys like any other keyboard.
+
+If you cannot see the OSD to perform key learning, add file
+misc/remote.conf.tcp3333 to your remote.conf.
+The keys are documented in misc/remote.conf.tcp3333.readme.
+
+
+4.3 Customizing the key mapping
+    ---------------------------
+It is recommended to use the key learning feature of vdr, but you
+might also use your favorite editor to modify the key mapping.
+
+Key codes can be found by using the debug feature of telnet:
+- enter command mode by pressing the 'escape character'
+- enter 'set netdata on'
+Note that the byte order must be reversed for remote.conf.
+
+
+-------------------------------------------------------------------------------
+
+
+5. More information
+   ----------------
 WIKIs:
 - VDR and plugins	http://www.vdr-wiki.de
 - DVB			http://linuxtv.org/wiki

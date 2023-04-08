@@ -28,3 +28,6 @@ Waldemar Nikel
 
 Joachim Selinger <selinger at idefix dot s dot bawue dot de>
  for suggesting to implement selection of the input device by path.
+
+Tobias Grimm tobias dot grimm at e-tobi dot net
+ for providing a better gettext detection using i18n.h.

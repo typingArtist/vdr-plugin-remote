@@ -3,7 +3,22 @@
  *
  * remote.c: main source file
  *
- * See the README file for copyright information and how to reach the author.
+ * Copyright (C) 2002-2012 Oliver Endriss <o.endriss@gmx.de>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
 
@@ -21,7 +36,6 @@
 #ifdef REMOTE_FEATURE_TCPIP
 #include "remotetcp.h"
 #endif
-#include "ttystatus.h"
 
 
 #define NUMREMOTES      10        // maximum number of remote control devices
@@ -34,7 +48,7 @@
 #define AV7110_PARM_INVERSION     "/sys/module/dvb_ttpci/parameters/ir_inversion"
 #endif
 
-static const char *VERSION        = "0.4.0";
+static const char *VERSION        = "0.5.0";
 static const char *DESCRIPTION    = trNOOP("Remote control");
 
 
@@ -65,6 +79,8 @@ cRemoteGeneric::~cRemoteGeneric()
 bool cRemoteGeneric::Put(uint64_t Code, bool Repeat, bool Release)
 // ---------------------------------------------------------------------------
 {
+    //printf("%s: code %llx repeat %u release %u\n",
+    //       __func__, Code, Repeat, Release);
     return cRemote::Put(Code, Repeat, Release);
 }
 
@@ -209,7 +225,7 @@ bool cRemoteDevInput::loadKeymap(const char *devname, uint32_t options)
     uint16_t keymap[2+256];
     int n;
 
-    fh = open(devname, O_RDWR);
+    fh = open(devname, O_WRONLY);
     if (fh < 0)
     {
         int err = errno;
@@ -308,7 +324,7 @@ bool cRemoteDevInput::Initialize()
     // load keymap for full-featured cards
     if (identifyInputDevice(fh, device) == 1)
     {
-        char *kDevname = AV7110_KEYMAP_DEVICE;
+        const char *kDevname = AV7110_KEYMAP_DEVICE;
         uint32_t kOptions;
         int kAddr = -1;
         int i, n;
@@ -675,7 +691,7 @@ bool cPluginRemote::Start(void)
     if (devcnt == 0)
     {
         devtyp[0] = 'i';
-        devnam[0] = "autodetect";
+        devnam[0] = (char *) "autodetect";
         devcnt = 1;
     }
 
@@ -717,7 +733,7 @@ bool cPluginRemote::Start(void)
 
         // use default device if nothing could be identified
         if (devtyp[i] == 'i' && strcmp(devnam[i], "autodetect") == 0)
-            devnam[i] = "/dev/input/ir";
+            devnam[i] = (char *) "/dev/input/ir";
     } // for i
 
     for (int i = 0; i < devcnt; i++)
@@ -790,8 +806,9 @@ bool cPluginRemote::Start(void)
                 break;
 #endif
             case 'T':
-                new cTtyStatus(fh[i]);
-                // fall thru
+                new cRemoteDevTtyWithOsd(nam,fh[i],devnam[i]);
+                break;
+
             case 't':
                 new cRemoteDevTty(nam,fh[i],devnam[i]);
                 break;

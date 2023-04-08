@@ -3,16 +3,31 @@
  *
  * remote.h: input/lirc/tty remote control
  *
- * See the README file for copyright information and how to reach the author.
+ * Copyright (C) 2002-2012 Oliver Endriss <o.endriss@gmx.de>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
 
 #ifndef __PLUGIN_REMOTE_H
 #define __PLUGIN_REMOTE_H
 
-
 #include <vdr/remote.h>
 #include <vdr/thread.h>
+#include "ttystatus.h"
 
 //#define DEBUG
 
@@ -113,5 +128,13 @@ public:
   virtual ~cRemoteDevTty(); 
 };
 
+/*****************************************************************************/
+class cRemoteDevTtyWithOsd : protected cRemoteDevTty, protected cTtyStatus
+/*****************************************************************************/
+{
+public:
+  cRemoteDevTtyWithOsd(const char *name, int f, char *d)
+    :cRemoteDevTty(name, f, d), cTtyStatus(f) {}
+};
 
 #endif // __PLUGIN_REMOTE_H

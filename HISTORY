@@ -94,6 +94,7 @@ VDR Plugin 'remote' Revision History
 - Added French language texts (thanks to Pierre Briec).
 
 
+
 2006-04-30: Version 0.3.7
 - Updated Makefile (use APIVERSION for VDR >= 1.3.47, VDRVERSION otherwise)
 
@@ -117,3 +118,15 @@ VDR Plugin 'remote' Revision History
   For example:
     vdr -P"remote -i /dev/input/by-path/pci-0000:02:06.0--event-ir"
   (Thanks to Joachim Selinger for suggesting to add this feature.)
+
+
+2012-12-26: Version 0.5.0
+- gettext detection modified to use $(VDRDIR)/i18n.h (thanks to Tobias Grimm).
+- Updated Italian language texts.
+- Fixed some compiler warnings.
+- Telnet section added to FAQ.
+- GPL text added to all source files.
+- Fixed crash with TTY and/or Telnet remotes when VDR terminated.
+- Access /proc/av7110_ir in write-only mode (required by kernel 2.6.34+).
+- Adopt Makefile for vdr 1.7.34+.
+

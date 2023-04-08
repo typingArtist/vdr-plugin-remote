@@ -1,7 +1,7 @@
 remote - Remote Control plugin for the Video Disk Recorder (VDR)
 ================================================================
 
-Version:                      0.3.3
+Version:                      0.3.4
 
 Written by:                   Oliver Endriss <o.endriss@gmx.de>
 
@@ -40,8 +40,8 @@ Installation:
 -------------
 The Remote Control plugin is installed the same way as any other plugin:
 - cd VDR/PLUGINS/src
-- tar xfz vdr-remote-0.3.3.tgz
-- ln -s remote-0.3.3 remote
+- tar xfz vdr-remote-0.3.4.tgz
+- ln -s remote-0.3.4 remote
 - cd ../..
 - make plugins
 
@@ -91,16 +91,23 @@ for all remote controls.)
 
 
 Notes:
-[3] Unfortunately, there is one severe restriction: Only user root may load
-    keymaps with an unpatched driver. Therefore, the new autodetect feature can
-    be used only, if
-    - vdr runs as root, or
-    - the driver has been patched using the patch in directory 'misc':
-        cd DVB/driver/av7110
-        patch < av7110_ir-permission-666-kernel-2.4.diff
-    The patch will change permissions of /proc/av7110_ir to 666, so any user may
-    load new keymaps. (Don't install the patch if you consider loading keymaps
-    a security risc.) After applying the patch the driver has to be recompiled.
+[3] There is a restriction:
+    By default, /proc/av7110 is owned by root with permissions -rw-r-r- (0644).
+    Therefore, the new autodetect feature can be used only,
+    - if vdr runs as root
+    or
+    - if you are running kernel 2.6.10.7 or later:
+      Use chown/chmod to set ownership/permissions. For example, add
+          chown $VDRUSR /proc/av7110_ir
+      to your runvdr script (after loading the driver).
+    or
+    - if the driver has been patched using the patch in directory 'misc':
+          cd DVB/driver/av7110
+          patch < av7110_ir-permission-666-kernel-2.4.diff
+      The patch will change permissions of /proc/av7110_ir to 666, so any user
+      may load new keymaps. (Don't install the patch if you consider loading
+      keymaps a security risc.) After applying the patch the driver has to be
+      recompiled.
 
 
 DVB and dvb-kernel driver (version 1.0.x "DVB", version 1.1.x "dvb-kernel") 

@@ -45,8 +45,15 @@ protected:
   virtual void display(const char *buf);
   virtual void display2(const char *buf);
   virtual void set_color(int col);
-  virtual void Recording(const cDevice *Device, const char *Name);
+#if VDRVERSNUM <= 10337
   virtual void Replaying(const cControl *Control, const char *Name);
+  virtual void Recording(const cDevice *Device, const char *Name);
+#else
+  virtual void Recording(const cDevice *Device,
+                         const char *Name, const char *FileName, bool On);
+  virtual void Replaying(const cControl *Control,
+                         const char *Name, const char *FileName, bool On);
+#endif
   virtual void SetVolume(int Volume, bool Absolute);
   virtual void OsdClear(void);
   virtual void OsdTitle(const char *Title);

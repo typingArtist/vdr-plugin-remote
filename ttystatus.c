@@ -117,6 +117,7 @@ void cTtyStatus::set_color(int col)
 }		  
 
 
+#if VDRVERSNUM <= 10337
 void cTtyStatus::Recording(const cDevice *Device, const char *Name)
 {
     set_pos(24, 0);
@@ -134,8 +135,35 @@ void cTtyStatus::Recording(const cDevice *Device, const char *Name)
     refresh();
     set_pos(2, 0);
 }
+#else
+void cTtyStatus::Recording(const cDevice *Device,
+                           const char *Name, const char *FileName, bool On)
+{
+    char *s1 = strdup(FileName);
+
+    if (s1)
+    {
+        char *s2 = strchr(s1+1, '/');
+        char *s3 = strrchr(s1, '/');
+
+        if (s2 && s3 && s2 != s3)
+        {
+            *s3 = '\0';
+            set_pos(24, 0);
+            set_color(BLACK_GREEN);
+            print("  Card %d: %s recording '%s'%-60s",
+                  Device->CardIndex()+1, On ? "start" : "stop", s2+1, "");
+            refresh();
+            set_pos(2, 0);
+        }
+
+        free(s1);
+    }
+}
+#endif
 
 
+#if VDRVERSNUM <= 10337
 void cTtyStatus::Replaying(const cControl *Control, const char *Name)
 {
     set_pos(24, 0);
@@ -152,6 +180,31 @@ void cTtyStatus::Replaying(const cControl *Control, const char *Name)
     refresh();
     set_pos(2, 0);
 }
+#else
+void cTtyStatus::Replaying(const cControl *Control,
+                           const char *Name, const char *FileName, bool On)
+{
+    char *s1 = strdup(FileName);
+
+    if (s1)
+    {
+         char *s2 = strchr(s1+1, '/');
+         char *s3 = strrchr(s1, '/');
+
+         if (s2 && s3 && s2 != s3)
+         {
+             *s3 = '\0';
+             set_pos(24, 0);
+             set_color(BLACK_GREEN);
+             print("  %s replay '%s'%-70s", On ? "Start": "Stop", s2+1, "");
+             refresh();
+             set_pos(2, 0);
+         }
+
+        free(s1);
+    }
+}
+#endif
 
 
 void cTtyStatus::SetVolume(int Volume, bool Absolute)

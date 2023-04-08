@@ -172,11 +172,20 @@ void cTtyStatus::Replaying(const cControl *Control,
 
 void cTtyStatus::SetVolume(int Volume, bool Absolute)
 {
+    static int lastVolume;
+
     // dsyslog("%s: vol %d abs %d", __FUNCTION__, Volume, Absolute);
 
     set_pos(24, 0);
     set_color(BLACK_GREEN);
-    print("     Set volume %d %-70s", Volume, Absolute ? "(muted)" : "");
+#if APIVERSNUM < 10402
+    Absolute = true;
+#endif
+    if (Absolute)
+        lastVolume = Volume;
+    else
+        lastVolume += Volume;
+    print("     Set volume %d %-70s", lastVolume, "");
     refresh();
     set_pos(2, 0);
 }

@@ -1,7 +1,7 @@
 remote - Remote Control plugin for the Video Disk Recorder (VDR)
 ================================================================
 
-Version:                      0.3.7
+Version:                      0.3.8
 
 Written by:                   Oliver Endriss <o.endriss@gmx.de>
 
@@ -40,8 +40,8 @@ Installation:
 -------------
 The Remote Control plugin is installed the same way as any other plugin:
 - cd VDR/PLUGINS/src
-- tar xfz vdr-remote-0.3.7.tgz
-- ln -s remote-0.3.7 remote
+- tar xfz vdr-remote-0.3.8.tgz
+- ln -s remote-0.3.8 remote
 - cd ../..
 - make plugins
 

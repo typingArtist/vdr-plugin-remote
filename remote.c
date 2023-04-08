@@ -28,7 +28,7 @@
  
 #define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
 
-static const char *VERSION        = "0.3.7";
+static const char *VERSION        = "0.3.8";
 static const char *DESCRIPTION    = "Remote control";
 
 
@@ -419,7 +419,10 @@ uint64 cRemoteDevInput::getKey(void)
     int n;
     uint64 code;
 
-    n = read(fh, &ev, sizeof ev);
+    do
+        n = read(fh, &ev, sizeof ev);
+    while (n == sizeof ev && ev.type != 1);
+
     if (n == sizeof ev)
     {
         if (ev.value)

@@ -13,3 +13,6 @@ Ville Skyttä <ville dot skytta at iki dot fi>
 Ronny Kornexl <ronny dot kornexl at online dot de>
  for reporting that cTtyStatus::Recording() and cTtyStatus::Replaying()
  may cause a segfault due to missing null-pointer checks
+
+Pierre Briec <eclipse dot vdr at gmail dot com>
+ for translating OSD texts to the French language

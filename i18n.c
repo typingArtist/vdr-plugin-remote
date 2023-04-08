@@ -6,6 +6,9 @@
  * See the README file for copyright information and how to reach the author.
  *
  * Translations provided by:
+ * Finnish	Ville Skyttä <ville dot skytta at iki dot fi>
+ * French	Pierre Briec <eclipse dot vdr at gmail dot com>
+ *  
  */
 
 #include "i18n.h"
@@ -41,7 +44,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Télécommande",
     "",
     "Kaukosäädin",
     "",
@@ -62,7 +65,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Appuyez sur une touche pour utiliser un Keymap préchargé",
     "",
     "Paina mitä tahansa näppäintä käyttääksesi oletusnäppäinkarttaa",
     "",
@@ -83,7 +86,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Keymap personnalisé va être utilisé",
     "",
     "Käytetään käyttäjän määrittelemää näppäinkarttaa",
     "",
@@ -105,7 +108,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Test télécommande - Appuyer et maintenir une touche enfoncée",
     "",
     "Kaukosäädintesti - paina ja pidä alhaalla jotain kaukosäätimen näppäintä",
     "",
@@ -126,7 +129,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Protocole RC5 détecté",
     "",
     "RC5-yhteyskäytäntö tunnistettu",
     "",
@@ -147,7 +150,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Protocole RC5 détecté (signal inversé)",
     "",
     "RC5-yhteyskäytäntö tunnistettu (käänteinen signaali)",
     "",
@@ -168,7 +171,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Protocole RCMM détecté",
     "",
     "RCMM-yhteyskäytäntö tunnistettu",
     "",
@@ -189,7 +192,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Protocole RCMM détecté (signal inversé)",
     "",
     "RCMM-yhteyskäytäntö tunnistettu (käänteinen signaali)",
     "",
@@ -210,7 +213,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Aucune télécommande détectée",
     "",
     "Kaukosäädintä ei tunnistettu",
     "",
@@ -231,7 +234,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "Erreur chargement tables de touches",
     "",
     "Näppäinkartan lataaminen epäonnistui",
     "",
@@ -252,7 +255,7 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
-    "",
+    "%s: %s",
     "",
     "%s: %s",
     "",

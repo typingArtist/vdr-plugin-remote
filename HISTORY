@@ -88,3 +88,7 @@ VDR Plugin 'remote' Revision History
   cTtyStatus::Replaying() (thanks to Ronny Kornexl for reporting this one).
   Rewrote cTtyStatus::Recording() and cTtyStatus::Replaying():
   Do not assume that Name and/or FileName have a particular format.
+
+
+2006-03-04: Version 0.3.6
+- Added French language texts (thanks to Pierre Briec).

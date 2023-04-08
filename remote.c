@@ -28,7 +28,7 @@
  
 #define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
 
-static const char *VERSION        = "0.3.5";
+static const char *VERSION        = "0.3.6";
 static const char *DESCRIPTION    = "Remote control";
 
 

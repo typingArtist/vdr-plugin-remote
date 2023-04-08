@@ -17,7 +17,7 @@
 
 #define NUMREMOTES      5         // maximum number of remote control devices
 
-static const char *VERSION        = "0.1.0";
+static const char *VERSION        = "0.1.1";
 static const char *DESCRIPTION    = "Remote control";
 
 //#define DEBUG
@@ -283,7 +283,11 @@ public:
   virtual const char *Description(void) { return DESCRIPTION; }
   virtual const char *CommandLineHelp(void);
   virtual bool ProcessArgs(int argc, char *argv[]);
+#if VDRVERSNUM >= 10131
+  virtual bool Initialize(void);
+#else
   virtual bool Start(void);
+#endif
 };
 
 cPluginRemote::cPluginRemote(void)
@@ -352,7 +356,11 @@ bool cPluginRemote::ProcessArgs(int argc, char *argv[])
     return true;
 }
 
+#if VDRVERSNUM >= 10131
+bool cPluginRemote::Initialize(void)
+#else
 bool cPluginRemote::Start(void)
+#endif
 {
     char nam[25];
     bool ok = false;

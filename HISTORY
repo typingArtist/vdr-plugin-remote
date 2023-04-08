@@ -6,8 +6,13 @@ VDR Plugin 'remote' Revision History
 - Initial revision.
 
 
-2002-03-31: Version 0.1.0
+2003-03-31: Version 0.1.0
 
 - Support autorepeat on /dev/input/eventX with following API-3 drivers:
   o DVB HEAD (2003-03-31 and later)
   o dvb kernel (2003-03-31 and later)
+
+
+2003-05-16: Version 0.1.1
+
+- Fixed key learning for vdr-1.1.31+.

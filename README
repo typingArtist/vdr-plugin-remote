@@ -31,8 +31,8 @@ Installation:
 -------------
 The remote plugin is installed as usual:
 - cd VDR/PLUGINS/src
-- tar xfz vdr-remote-0.1.0.tgz
-- ln -s remote-0.1.0 remote
+- tar xfz vdr-remote-0.1.1.tgz
+- ln -s remote-0.1.1 remote
 - cd ../..
 - make plugins
 

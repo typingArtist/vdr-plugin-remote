@@ -57,3 +57,10 @@ VDR Plugin 'remote' Revision History
   Please note that I do not use LIRC and cannot provide any support.
 - TCP/telnet remote control (option '-p').
 - 'OSD' emulation for TTY (option '-T') and TCP remote control (option '-p').
+
+
+2004-04-28: Version 0.3.1
+- Fixed gcc 3.4.0 compilation warnings.
+- Fixed high cpu usage while waiting for a tcp connection
+  (thanks to Frank Krömmelbein for reporting this one).
+  Replaced delay_ms by usleep, because delay_ms does busy-waiting.

@@ -28,7 +28,7 @@
  
 #define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
 
-static const char *VERSION        = "0.3.0";
+static const char *VERSION        = "0.3.1";
 static const char *DESCRIPTION    = "Remote control";
 
 
@@ -74,13 +74,13 @@ void cRemoteGeneric::Action(void)
     for (;;)
     {
         if (polldelay)
-            delay_ms(polldelay);
+            usleep(100*polldelay);
 
         code = getKey();
         if (code == INVALID_KEY)
         {
             esyslog("error reading '%s'\n", device);
-            delay_ms(100*polldelay);
+            usleep(10000*polldelay);
             continue;
         }
 
@@ -253,7 +253,7 @@ cRemoteDevInput::cRemoteDevInput(const char *name, int f, char *d)
 
     if (setupStr)
     {
-        sscanf(setupStr, "%s %lx %d", kDevname, &kOptions, &kAddr);
+        sscanf(setupStr, "%s %x %d", kDevname, &kOptions, &kAddr);
         if (kAddr != -1)
             kOptions |= ((kAddr << 16) | 0x4000);
     }
@@ -316,7 +316,7 @@ bool cRemoteDevInput::Initialize()
 		    }
 		}
                 Interface->Info(tr("RC5 protocol detected"));
-                sprintf (setupStr, "%s %.8lx %d", kDevname, kOptions, kAddr);
+                sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
             }
 
@@ -340,7 +340,7 @@ bool cRemoteDevInput::Initialize()
                     }
                 }
                 Interface->Info(tr("RC5 protocol detected (inverted signal)"));
-                sprintf (setupStr, "%s %.8lx %d", kDevname, kOptions, kAddr);
+                sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
             }
 
@@ -351,7 +351,7 @@ bool cRemoteDevInput::Initialize()
             if (testKey != 0)
             {
                 Interface->Info(tr("RCMM protocol detected"));
-                sprintf (setupStr, "%s %.8lx %d", kDevname, kOptions, kAddr);
+                sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
             }
 
@@ -362,7 +362,7 @@ bool cRemoteDevInput::Initialize()
             if (testKey != 0)
             {
                 Interface->Info(tr("RCMM protocol detected (inverted signal)"));
-                sprintf (setupStr, "%s %.8lx %d", kDevname, kOptions, kAddr);
+                sprintf (setupStr, "%s %.8x %d", kDevname, kOptions, kAddr);
                 break;
             }
         }/* for */

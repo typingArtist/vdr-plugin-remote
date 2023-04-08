@@ -1,0 +1,5 @@
+Special thanks go to the following individuals (if your name is missing here,
+please send an email to the plugin author):
+
+Frank Krömmelbein <Frank99 at vdrportal>
+ for reporting that the tcp remote control is causing high cpu load

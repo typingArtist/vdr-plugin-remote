@@ -59,7 +59,7 @@ uint64 cTcpRemote::getKey(void)
 
     while (fh < 0)
     {
-        delay_ms(100);
+        usleep(100000);
         fh = csock->Accept();
         if (fh >= 0)
         {

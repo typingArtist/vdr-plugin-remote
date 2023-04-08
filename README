@@ -1,0 +1,99 @@
+remote - a remote control plugin for the Video Disk Recorder (VDR)
+==================================================================
+
+Written by:                   Oliver Endriss <o.endriss@gmx.de>
+
+Latest version available at:  http://endriss.escape.bei.t-online.de/vdr
+
+Requirements:                 VDR 1.1.13 or later
+
+Distributed under GPL, see the file COPYING for license information.
+
+
+Description:
+------------
+This plugin supports the built-in remote control port of the DVB-S Nexus 2.1.
+It is primarily intended for use with the new DVB driver (NEWSTRUCT and later,
+i.e. API versions 2 and 3), but may be used with the old driver, too.
+
+When the plugin is loaded for the first time, vdr will prompt you to learn
+the keys of the remote control. It is possible to use several devices at the
+same time, but this is not very important right now...
+
+Supported kernel devices:
+- new DVB driver (API-2 NEWSTRUCT, API-3): /dev/input/event0
+- old DVB driver (API-1): /dev/lirc
+- keyboard: /dev/console, /dev/tty..
+
+
+Installation:
+-------------
+The remote plugin is installed as usual:
+- cd VDR/PLUGINS/SRC
+- tar xfz vdr-remote-0.0.1.tgz
+- ln -s remote-0.0.1 remote
+- cd ../..
+- make plugins
+
+
+API-2 NEWSTRUCT, API-3 driver:
+------------------------------
+Remote control events are passed through '/device/input/event0'.
+Since the /dev/input protocol is standardized in the kernel, there is a
+chance that this plugin will work with other /dev/input devices, too.
+However, this has not been tested yet...
+The -i option allows you to specify the name of the /dev/input device.
+
+Before submitting a bug report, please verify that driver and remote control
+are working properly. You may do this using the 'evtest' tool supplied
+with the driver (directory 'DVB/apps/av7110_loadkeys').
+Verify that the device node exists and you have read access rights.
+You have to select the correct remote control type, inversion setting and
+keymap using the tool 'av7110_loadkeys'. Please read the file README in
+the directory 'DVB/apps/av7110_loadkeys'.
+
+Note that, due to a firmware problem, autorepeat does not work with the
+current driver. I hope that this will be fixed soon.
+
+
+API-1 old driver
+----------------
+The old DVB driver provides a module (DVB/driver/lirc/lirc_dvb.o) which
+connects to the LIRC device ('/dev/lirc', lirc_dev.o).
+Using the -l option, it is possible to use '/dev/lirc' as a direct input
+device, i.e. lircd is *not* needed. However, the lirc_dev.o driver
+supplied by the LIRC package is still required (and must be loaded).
+If you use this option, you should know what you are doing. :-)
+
+
+TTY devices
+-----------
+The -t option may be used to specify a virtual console as an input device.
+This is useful, if you haven't compiled keyboard support into your VDR.
+
+
+Summary of command line options:
+--------------------------------
+-i dev, --input dev   select device which supports the /dev/input protocol
+-l dev, --lirc dev    select device which uses the /dev/lirc protocol
+-t dev, --tty dev     select terminal device
+
+
+Examples:
+---------
+vdr -Premote
+    use default device, same as '-i /dev/input/event0'
+
+vdr -P"remote -i /dev/input/event2"
+    use specified input device '/dev/input/event2'
+
+vdr -P"remote -l /dev/lirc"
+    use lirc kernel device
+
+vdr -P"remote -i /dev/input/event0 -i /dev/input/event2 -t /dev/tty10"
+    use multiple devices
+
+
+Have fun,
+
+Oliver

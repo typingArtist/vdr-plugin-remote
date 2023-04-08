@@ -16,3 +16,18 @@ VDR Plugin 'remote' Revision History
 2003-05-16: Version 0.1.1
 
 - Fixed key learning for vdr-1.1.31+.
+
+
+2003-10-05: Version 0.2.0
+
+- Simplified installation for av7110-based (aka full-featured) cards:
+  o av7110_loadkeys is no longer required, but may be used anyway
+    (for backward compatibility).
+  o Integrated generic keymap support for all remote controls.
+    No need to use remote-specific keymaps anymore.
+  o Remote control protocol (RC5, RCMM), signal inversion setting
+    and device address are automatically detected.
+- Implemented internationalization.
+- Dropped old (API-1) driver support.
+- Updated plugin Makefile (re-created with vdr 1.2.5 newplugin).
+- Minimum vdr version 1.1.32 or later.

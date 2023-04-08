@@ -13,18 +13,21 @@ PLUGIN = remote
 
 VERSION = $(shell grep 'static const char \*VERSION *=' $(PLUGIN).c | awk '{ print $$6 }' | sed -e 's/[";]//g')
 
+### The C++ compiler and options:
+
+CXX      ?= g++
+CXXFLAGS ?= -O2 -Wall -Woverloaded-virtual
+
 ### The directory environment:
 
-ifdef NEWSTRUCT
-DVBDIR = ../../../../DVB/include
-DEFINES += -DNEWSTRUCT
-else
-DVBDIR = ../../../../DVB/ost/include
-endif
+DVBDIR = ../../../../DVB
 VDRDIR = ../../..
-VDRINC = $(VDRDIR)/include
 LIBDIR = ../../lib
 TMPDIR = /tmp
+
+### Allow user defined options to overwrite defaults:
+
+-include $(VDRDIR)/Make.config
 
 ### The version number of VDR (taken from VDR's "config.h"):
 
@@ -37,18 +40,13 @@ PACKAGE = vdr-$(ARCHIVE)
 
 ### Includes and Defines (add further entries here):
 
-INCLUDES = -I$(VDRINC) -I$(DVBDIR)
+INCLUDES += -I$(VDRDIR)/include -I$(DVBDIR)/include
 
 DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
 
 ### The object files (add further files here):
 
-OBJS = $(PLUGIN).o
-
-### The C++ compiler and options:
-
-CXX      = g++
-CXXFLAGS = -O2 -Wall -Woverloaded-virtual
+OBJS = $(PLUGIN).o i18n.o
 
 ### Implicit rules:
 

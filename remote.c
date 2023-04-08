@@ -14,10 +14,13 @@
 #include <getopt.h>
 #include <termios.h>
 #include <linux/input.h>
+#include "i18n.h"
 
 #define NUMREMOTES      5         // maximum number of remote control devices
 
-static const char *VERSION        = "0.1.1";
+#define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
+
+static const char *VERSION        = "0.2.0";
 static const char *DESCRIPTION    = "Remote control";
 
 //#define DEBUG
@@ -134,25 +137,63 @@ void cRemoteGeneric::Action(void)
 
 class cRemoteDevInput : protected cRemoteGeneric
 {
+private:
+  char description[256];
+  bool testMode;
+  uint64 testKey;
+  void loadKeymap(const char *devname, uint32_t options);
 protected:
   virtual uint64 getKey(void);
   virtual bool keyPressed(uint64 code);
 public:
   cRemoteDevInput(const char *name, int f, char *d);
+  virtual bool Initialize(void);
 };
+
+void cRemoteDevInput::loadKeymap(const char *devname, uint32_t options)
+{
+    int fh;
+    uint16_t keymap[2+256];
+    int n;
+
+    fh = open(devname, O_RDWR);
+    if (fh < 0)
+    {
+        esyslog("%s: unable to open '%s'", Name(), devname);
+        return;
+    }
+
+    keymap[0] = (uint16_t) options;
+    keymap[1] = (uint16_t) (options >> 16);
+
+    for (int i = 1; i <= 256; i++)
+        keymap[1+i] = i;
+
+    n = write(fh, keymap, sizeof keymap);
+    if (n == sizeof keymap)
+        dsyslog("%s: keymap loaded '%s' flags %.8x", Name(), devname, options);
+    else
+        esyslog("%s: error uploading keymap to '%s'", Name(), devname);
+
+    close(fh);
+}
 
 cRemoteDevInput::cRemoteDevInput(const char *name, int f, char *d)
 :cRemoteGeneric(name, f, d)
 {
-    unsigned long data[EV_MAX];
- 
+    testMode = false;
+
     Start();
 
-    memset (data, 0, sizeof data);
-    ioctl(f, EVIOCGBIT(0,EV_MAX), data); 
+    // input device name
+    if (ioctl(f, EVIOCGNAME(sizeof(description)), description) < 0)
+        memset(description, 0, sizeof description);
 
+    // autorepeat
 #define BITS_PER_LONG	(sizeof(unsigned long) * 8)
-
+    unsigned long data[EV_MAX];
+    memset(data, 0, sizeof data);
+    ioctl(f, EVIOCGBIT(0,EV_MAX), data); 
     if ( data[EV_REP/BITS_PER_LONG] & (1 << EV_REP%BITS_PER_LONG) )
     {
         // autorepeat driver
@@ -164,6 +205,140 @@ cRemoteDevInput::cRemoteDevInput(const char *name, int f, char *d)
         // non-autorepeat drivers
         polldelay = repeatdelay = repeatfreq = repeattimeout = 0;
     }
+
+    // setup keymap
+    const char *setupStr = GetSetup();
+    char kDevname[256]; memset(kDevname, 0, sizeof kDevname);
+    uint32_t kOptions = 0;
+    int kAddr = -1;
+
+    if (setupStr)
+    {
+        sscanf(setupStr, "%s %lx %d", kDevname, &kOptions, &kAddr);
+        if (kAddr != -1)
+            kOptions |= ((kAddr << 16) | 0x4000);
+    }
+
+    if (kDevname[0])
+    {    
+        loadKeymap(kDevname, kOptions);
+    }
+}
+
+bool cRemoteDevInput::Initialize()
+{
+    testMode = true;
+
+    char setupStr[256]; memset (setupStr, 0, sizeof setupStr);
+		
+    if (!strcmp(description, "DVB on-card IR receiver"))
+    {
+        char *kDevname = "/proc/av7110_ir";
+        uint32_t kOptions;
+        int kAddr = -1;
+        int i, n;
+
+	for (n = 0; n < 2; n++)
+        {
+            if (n == 0)
+            {
+                Interface->Info(tr("Press any key to use pre-loaded keymap"));
+                for (testKey = 0, i = 0; testKey == 0 && i < 35; i++)
+                    usleep(200000);
+                if (testKey != 0)
+                {
+                    Interface->Info(tr("User-supplied keymap will be used"));
+                    break;
+                }
+            }
+
+            kOptions = 0x0000;
+            Interface->Info(tr("Remote control test - press and hold down any key"));
+            loadKeymap(kDevname, kOptions);
+            for (testKey = 0, i = 0; testKey == 0 && i < 10; i++)
+                usleep(200000);
+            if (testKey != 0)
+            {
+                for (i = 0; i < 64; i++)
+                {
+                    int a = (i & 0x1f);
+                    loadKeymap(kDevname, kOptions | 0x4000 | (a << 16));
+                    usleep(400000);
+                    testKey = 0;
+                    usleep(400000);
+                    if (testKey != 0)
+                    {
+                        kAddr = a;
+			break;
+		    }
+		}
+                Interface->Info(tr("RC5 protocol detected"));
+                sprintf (setupStr, "%s %.8lx %d", kDevname, kOptions, kAddr);
+                break;
+            }
+
+            kOptions = 0x8000;
+            loadKeymap(kDevname, kOptions);
+            for (testKey = 0, i = 0; testKey == 0 && i < 10; i++)
+                usleep(200000);
+            if (testKey != 0)
+            {
+                for (i = 0; i < 64; i++)
+                {
+                    int a = (i & 0x1f);
+                    loadKeymap(kDevname, kOptions | 0x4000 | (a << 16));
+                    usleep(400000);
+                    testKey = 0;
+                    usleep(400000);
+                    if (testKey != 0)
+                    {
+                        kAddr = a;
+                        break;
+                    }
+                }
+                Interface->Info(tr("RC5 protocol detected (inverted signal)"));
+                sprintf (setupStr, "%s %.8lx %d", kDevname, kOptions, kAddr);
+                break;
+            }
+
+            kOptions = 0x0001;
+            loadKeymap(kDevname, kOptions);
+            for (testKey = 0, i = 0; testKey == 0 && i < 10; i++)
+                usleep(200000);
+            if (testKey != 0)
+            {
+                Interface->Info(tr("RCMM protocol detected"));
+                sprintf (setupStr, "%s %.8lx %d", kDevname, kOptions, kAddr);
+                break;
+            }
+
+            kOptions = 0x8001;
+            loadKeymap(kDevname, kOptions);
+            for (testKey = 0, i = 0; testKey == 0 && i < 10; i++)
+                usleep(200000);
+            if (testKey != 0)
+            {
+                Interface->Info(tr("RCMM protocol detected (inverted signal)"));
+                sprintf (setupStr, "%s %.8lx %d", kDevname, kOptions, kAddr);
+                break;
+            }
+        }/* for */
+
+        if (testKey == 0)
+	{
+            Interface->Error(tr("No remote control detected"));
+            esyslog("%s: no remote control detected", device);
+            usleep(5000000);
+            testMode = false;
+            return false;
+        }
+    }/* DVB card */
+
+    if (setupStr[0])
+        PutSetup(setupStr);
+
+    testMode = false;
+    return true;
 }
 
 uint64 cRemoteDevInput::getKey(void)
@@ -181,6 +356,13 @@ uint64 cRemoteDevInput::getKey(void)
     }
     else
         code = INVALID_KEY;
+
+    if (testMode)
+    {
+        testKey = code;
+        code = 0ULL;
+    }
+
     return code;
 }
 
@@ -190,6 +372,8 @@ bool cRemoteDevInput::keyPressed(uint64 code)
 }
 
 //------------------------------------------------------------------------------
+
+#ifdef OLD_LIRC
 
 class cRemoteDevLirc : protected cRemoteGeneric
 {
@@ -217,6 +401,8 @@ bool cRemoteDevLirc::keyPressed(uint64 code)
 {
     return (code & 0x80);
 }
+
+#endif // OLD_LIRC
 
 //------------------------------------------------------------------------------
 
@@ -280,7 +466,7 @@ public:
   cPluginRemote(void);
   virtual ~cPluginRemote();
   virtual const char *Version(void) { return VERSION; }
-  virtual const char *Description(void) { return DESCRIPTION; }
+  virtual const char *Description(void) { return tr(DESCRIPTION); }
   virtual const char *CommandLineHelp(void);
   virtual bool ProcessArgs(int argc, char *argv[]);
 #if VDRVERSNUM >= 10131
@@ -317,7 +503,9 @@ cPluginRemote::~cPluginRemote()
 const char *cPluginRemote::CommandLineHelp(void)
 {
     return "  -i dev,   --input=dev    kernel input device (/dev/input/...)\n"
+#ifdef OLD_LIRC
            "  -l dev,   --lirc=dev     kernel lirc device (/dev/lirc)\n"
+#endif
            "  -t dev,   --tty=dev      tty device\n";
 }
 
@@ -325,7 +513,9 @@ bool cPluginRemote::ProcessArgs(int argc, char *argv[])
 {
     static struct option long_options[] =
             { { "input", required_argument, NULL, 'i' },
+#ifdef OLD_LIRC
               { "lirc",  required_argument, NULL, 'l' },
+#endif
               { "tty",   required_argument, NULL, 't' },
               { NULL } };
     int c;
@@ -365,6 +555,9 @@ bool cPluginRemote::Start(void)
     char nam[25];
     bool ok = false;
 
+    // translations
+    RegisterI18n(remotePhrases);
+
     // defaults
     if (devcnt == 0)
     {
@@ -399,9 +592,11 @@ bool cPluginRemote::Start(void)
                 new cRemoteDevInput(nam,fh[i],devnam[i]);
                 break;
 
+#ifdef OLD_LIRC
             case 'l':
                 new cRemoteDevLirc(nam,fh[i],devnam[i]);
                 break;
+#endif
 
             case 't':
                 new cRemoteDevTty(nam,fh[i],devnam[i]);

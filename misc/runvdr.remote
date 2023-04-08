@@ -32,9 +32,10 @@ if [ $LSMOD -eq 0 ] ; then
    fi
 
 while (true) do
+      # next line is _not_ required if autodetect mode is used
       $DVBREM/av7110_loadkeys $DVBREM/hauppauge.rc5 > /proc/av7110_ir 
       su -c "$VDRCMD" $VDRUSR
-      if test $? -eq 0; then exit; fi
+      if test $? -eq 0 -o $? -eq 2; then exit; fi
       date
       echo "restarting VDR"
       $KILL $VDRPRG

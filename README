@@ -1,83 +1,122 @@
-remote - a remote control plugin for the Video Disk Recorder (VDR)
-==================================================================
+remote - Remote Control plugin for the Video Disk Recorder (VDR)
+================================================================
+
+Version:                      0.2.0
 
 Written by:                   Oliver Endriss <o.endriss@gmx.de>
 
 Latest version available at:  http://endriss.escape.bei.t-online.de/vdr
 
-Requirements:                 VDR 1.1.13 or later
+Requirements:                 VDR 1.1.32 or later
+                              DVB or dvb-kernel driver (2003-03-31 or later)
 
 Distributed under GPL, see the file COPYING for license information.
 
 
 Description:
 ------------
-This plugin supports the built-in remote control port of the DVB-S Rev. 2.1/2.2
-(and the J2 or CAM connectors of some other boards, see file FAQ).
-It is primarily intended for use with the new DVB driver (NEWSTRUCT and later,
-i.e. API versions 2 and 3), but may be used with the old driver, too.
+This plugin extends the remote control capabilities of vdr.
+The following remote control devices are supported:
 
-When the plugin is loaded for the first time, vdr will prompt you to learn
-the keys of the remote control. It is possible to use several devices at the
-same time, but this is not very important right now...
+(a) linux input device driver ('/dev/input/eventX', X=0,1,2,...)
+    - built-in remote control port of the av7110-based DVB cards
+      (aka full-featured cards), e.g. DVB-S Nexus [1]
+    - remote control port of some budget cards, e.g. Nova-CI [2]
+    - other input devices (?, not tested)
+    See file FAQ for a list of cards which have been reported to work.
 
-Supported kernel devices:
-- new DVB driver (API-2, API-3): /dev/input/eventX
-- old DVB driver (API-1): /dev/lirc
-- keyboard: /dev/console, /dev/ttyX
+(b) keyboard (tty driver): /dev/console, /dev/ttyX
+
+Notes:
+[1] supported by DVB and dvb-kernel
+[2] supported by dvb-kernel only
 
 
 Installation:
 -------------
-The remote plugin is installed as usual:
+The Remote Control plugin is installed the same way as any other plugin:
 - cd VDR/PLUGINS/src
-- tar xfz vdr-remote-0.1.1.tgz
-- ln -s remote-0.1.1 remote
+- tar xfz vdr-remote-0.2.0.tgz
+- ln -s remote-0.2.0 remote
 - cd ../..
 - make plugins
 
+Edit runvdr (or whatever script you use) to load the Remote Control plugin, e.g.
+  vdr -Premote
+will start the Remote Control plugin using default device '/dev/input/event0'.
 
-API-3 driver (version 1.0.0, CVS HEAD, CVS dvb-kernel) 
-------------------------------------------------------
+
+Key Learning:
+-------------
+When a remote control device is used for the first time, vdr will enter
+key learning mode. Please follow the instructions on the OSD carefully!
+
+For full-featured cards, you will be asked whether you want to use an
+user-defined keymap. This keymap must be loaded with av7110_loadkeys
+- *after* the driver has been loaded and
+- *before* vdr has been started.
+This way you can use your old keymaps if you are upgrading an existing
+installation. Most people don't want to do this, and won't press a key here!
+
+If you don't care about keymaps (or don't even know what a keymap is ;-),
+the Remote Control plugin will now try to autodetect the remote control.
+It will load a one-for-all keymap and detect protocol type and device address.
+Please see note [3] below!
+
+You will be prompted to press and hold down any key.
+It is *important* to keep the key pressed until there is a OSD message that
+- protocol ... has been detected or
+- no remote control could be detected.
+
+Note that the remote control transmitter can be detected only, if it uses a 
+infrared protocol supported by the receiver hardware.
+The receivers of the Nexus cards support the RC5 protocol, which is supported
+by virtually all universal remote controls (try 'Philips' codes).
+
+After key learning, entries like these will be added to the remote.conf file:
+...
+remote-event0._Setup     /proc/av7110_ir 00000000 18
+remote-event0.Up         0000000100010021
+remote-event0.Down       0000000100010022
+remote-event0.Menu       0000000100010024
+... 
+
+If you have to re-learn keys, edit remote.conf and delete these lines.
+(If you delete the file remote.conf, you have to repeat key learning
+for all remote controls.)
+
+
+Notes:
+[3] Unfortunately, there is one severe restriction: Only user root may load
+    keymaps with an unpatched driver. Therefore, the new autodetect feature can
+    be used only, if
+    - vdr runs as root, or
+    - the driver has been patched using the patch in directory 'misc':
+        cd DVB/driver/av7110
+        patch < av7110_ir-permission-666.diff
+    The patch will change permissions of /proc/av7110_ir to 666, so any user may
+    load new keymaps. (Don't install the patch if you consider loading keymaps
+    a security risc.) After applying the patch the driver has to be recompiled.
+
+
+DVB and dvb-kernel driver (version 1.0.x, CVS DVB, CVS dvb-kernel) 
+------------------------------------------------------------------
 Remote control events are passed through '/device/input/eventX'.
-Since the /dev/input protocol is standardized in the kernel, there is a
+(Since the /dev/input protocol is standardized in the kernel, there is a
 chance that this plugin will work with other /dev/input devices, too.
-However, this has not been tested yet...
+However, this has not been tested yet...)
 The -i option allows you to specify the name of the /dev/input device.
 
 Before submitting a bug report, please verify that driver and remote control
 are working properly. You may do this using the 'evtest' tool supplied
 with the driver (directory 'DVB/apps/av7110_loadkeys').
 Verify that the device node exists and you have read access rights.
-You have to select the correct remote control type, inversion setting and
+
+For testing or if you want to build your own keymap:
+You have to select the correct protocol type, inversion setting and
 keymap using the tool 'av7110_loadkeys'. Please read the file README in
 the directory 'DVB/apps/av7110_loadkeys'.
-If you still have problems, take a look on the checklist in file 'FAQ'.
-
-If you'd like to use autorepeat, you have to use CVS HEAD, CVS dvb-kernel
-2003-03-31 or later (or the next 1.0.0 release, of course).
-The feature is automatically detected and used.
-
-BTW, these drivers might also be useful, if the remote control of your
-TV set interferes with the remote control of your DVB-S. See the file
-'DVB/apps/av7110_loadkeys/README' for information how to enable 
-checking of the device address.
-
-
-API-2 (CVS NEWSTRUCT)
----------------------
-Since the NEWSTRUCT branch is obsolete, there is no reason to use this
-driver anymore. See API-3 above.
-
-
-API-1 (old driver, version 0.9.4)
----------------------------------
-The old DVB driver provides a module (DVB/driver/lirc/lirc_dvb.o) which
-connects to the LIRC device ('/dev/lirc', lirc_dev.o).
-Using the -l option, it is possible to use '/dev/lirc' as a direct input
-device, i.e. lircd is *not* needed. However, the lirc_dev.o driver
-supplied by the LIRC package is still required (and must be loaded).
-If you use this option, you should know what you are doing. :-)
+If you still have problems, have a look on the checklist in file 'FAQ'.
 
 
 TTY devices
@@ -89,7 +128,6 @@ This is useful, if you haven't compiled keyboard support into your VDR.
 Summary of command line options:
 --------------------------------
 -i dev, --input dev   select device which supports the /dev/input protocol
--l dev, --lirc dev    select device which uses the /dev/lirc protocol
 -t dev, --tty dev     select terminal device
 
 
@@ -100,9 +138,6 @@ vdr -Premote
 
 vdr -P"remote -i /dev/input/event2"
     use specified input device '/dev/input/event2'
-
-vdr -P"remote -l /dev/lirc"
-    use lirc kernel device
 
 vdr -P"remote -i /dev/input/event0 -i /dev/input/event2 -t /dev/tty10"
     use multiple devices

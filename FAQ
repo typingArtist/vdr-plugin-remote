@@ -1,4 +1,4 @@
-Remote Control Mini-FAQ (En, 2003-03-31)
+Remote Control Mini-FAQ (En, 2003-10-05)
 ========================================
 
 Q: Which hardware is supported?
@@ -108,4 +108,4 @@ A: Verify that the plug of the remote control receiver is connected properly.
 ------------------------------------------------------------------------------
 
 Q: How do I have to modify 'runvdr' to load the keymap?
-A: Take a look at the script 'runvdr.remote' in sub-directory 'misc'.
+A: Have a look at the script 'runvdr.remote' in sub-directory 'misc'.

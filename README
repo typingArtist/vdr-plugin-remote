@@ -1,7 +1,7 @@
 remote - Remote Control plugin for the Video Disk Recorder (VDR)
 ================================================================
 
-Version:                      0.2.0
+Version:                      0.2.1
 
 Written by:                   Oliver Endriss <o.endriss@gmx.de>
 
@@ -36,14 +36,14 @@ Installation:
 -------------
 The Remote Control plugin is installed the same way as any other plugin:
 - cd VDR/PLUGINS/src
-- tar xfz vdr-remote-0.2.0.tgz
-- ln -s remote-0.2.0 remote
+- tar xfz vdr-remote-0.2.1.tgz
+- ln -s remote-0.2.1 remote
 - cd ../..
 - make plugins
 
 Edit runvdr (or whatever script you use) to load the Remote Control plugin, e.g.
   vdr -Premote
-will start the Remote Control plugin using default device '/dev/input/event0'.
+will start the Remote Control plugin using default (autodetect) mode.
 
 
 Key Learning:
@@ -109,13 +109,14 @@ The -i option allows you to specify the name of the /dev/input device.
 
 Before submitting a bug report, please verify that driver and remote control
 are working properly. You may do this using the 'evtest' tool supplied
-with the driver (directory 'DVB/apps/av7110_loadkeys').
+with the driver (directory 'DVB/apps/av7110_loadkeys' or
+'DVB-APPS/util/av7110_loadkeys').
 Verify that the device node exists and you have read access rights.
 
 For testing or if you want to build your own keymap:
 You have to select the correct protocol type, inversion setting and
 keymap using the tool 'av7110_loadkeys'. Please read the file README in
-the directory 'DVB/apps/av7110_loadkeys'.
+the directory 'DVB/apps/av7110_loadkeys' or 'DVB-APPS/util/av7110_loadkeys'.
 If you still have problems, have a look on the checklist in file 'FAQ'.
 
 
@@ -134,7 +135,8 @@ Summary of command line options:
 Examples:
 ---------
 vdr -Premote
-    use default device, same as '-i /dev/input/event0'
+    Try to autodetect device '/dev/input/eventX' (X = 0,1,2,...).
+    If no device can be identified, '-i /dev/input/event0' is used.
 
 vdr -P"remote -i /dev/input/event2"
     use specified input device '/dev/input/event2'

@@ -1,8 +1,8 @@
-Remote Control Mini-FAQ (En, 2003-10-05)
+Remote Control Mini-FAQ (En, 2004-02-01)
 ========================================
 
-Q: Which hardware is supported?
-A: Configurations which have been reported to work:
+Q1: Which hardware is supported?
+A1: Configurations which have been reported to work:
 
 type          connector         ir protocol
 -------------------------------------------
@@ -21,8 +21,8 @@ Please report if you have a working configuration not listed here. Thx.
 
 ------------------------------------------------------------------------------
 
-Q: What is the expected behavior of evtest?
-A: You should see something like this:
+Q2: What is the expected behavior of evtest?
+A2: You should see something like this:
 
 ./evtest /dev/input/event0
 Input driver version is 1.0.0
@@ -60,8 +60,8 @@ Event: time 1047342385.290630, type 1 (Key), code 402 (ChannelUp), value 0
 
 ------------------------------------------------------------------------------
 
-Q: evtest does not show any events.
-A: Try this checklist:
+Q3: evtest does not show any events.
+A3: Try this checklist:
 
 0. compile everything:
    cd DVB/driver
@@ -101,11 +101,35 @@ Note:
 
 ------------------------------------------------------------------------------
 
-Q: It still doesn't work. Any other idea?
-A: Verify that the plug of the remote control receiver is connected properly.
+Q4: It still doesn't work. Any other idea?
+A4: Verify that the plug of the remote control receiver is connected properly.
    :)
 
 ------------------------------------------------------------------------------
 
-Q: How do I have to modify 'runvdr' to load the keymap?
-A: Have a look at the script 'runvdr.remote' in sub-directory 'misc'.
+Q5: How do I have to modify 'runvdr' to load the keymap?
+A5: Have a look at the script 'runvdr.remote' in sub-directory 'misc'.
+
+------------------------------------------------------------------------------
+
+Q6: Keys are duplicated, i.e. pressing '1' switches to channel '11' or '111'.
+A6: Try this: Switch to a different virtual console.
+   If the problem disappeares, read on.
+
+When loaded, the keybdev device driver catches all remote control events.
+vdr receives these events from the keyboard _and_ the remote plugin.
+There are different solutions for kernel versions 2.4.x and 2.6.x.
+
+Fix for kernel 2.4:
+- If you don't use an USB keyboard, remove the keybdev driver:
+  rmmod keybdev, rename/delete keybdev.o
+- If you have an USB keyboard, patch the keybdev driver using
+    misc/kernel-2.4-keybdev-patch.diff
+  and recompile the driver.
+
+Fix for kernel 2.6 (already included in remote plugin 0.2.1 and later):
+  The keybdev driver is no longer optional. All keyboards use this driver.
+  Fortunately, there is a new ioctl to grab an input device in 2.6.x.
+  Patch the remote plugin using
+    http://endriss.escape.bei.t-online.de/vdr/misc/remote-0.2.0_kernel-2.6_grab_device.diff
+  and recompile the plugin.

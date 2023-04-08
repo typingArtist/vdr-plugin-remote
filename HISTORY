@@ -31,3 +31,20 @@ VDR Plugin 'remote' Revision History
 - Dropped old (API-1) driver support.
 - Updated plugin Makefile (re-created with vdr 1.2.5 newplugin).
 - Minimum vdr version 1.1.32 or later.
+
+
+2004-02-01: Version 0.2.1
+
+- Implemented code to autodetect the remote control device.
+  If called without parameters, the plugin will detect the receiver of the
+  DVB card on event0/1/2/... automagically. This should make setup easier
+  for people who have an USB keyboard or an USB mouse.
+- Included workaround for kernel 2.6: Try to get exclusive access
+  ("grab" device). Patching the plugin is not required anymore.
+- Added some OSD diagnostic messages to make debugging easier.
+- Included some patches in sub-directory 'misc':
+  o DVB driver patch to set permissions for /proc/av7110_ir to 666
+  o kernel 2.4 keybdev patch
+  See README for details when these patches should be applied.
+- Minor code clean-up.
+- Makefile: added -D_GNU_SOURCE to make plugin compatible with vdr patches.

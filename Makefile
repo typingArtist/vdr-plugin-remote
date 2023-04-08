@@ -43,6 +43,7 @@ PACKAGE = vdr-$(ARCHIVE)
 INCLUDES += -I$(VDRDIR)/include -I$(DVBDIR)/include
 
 DEFINES += -DPLUGIN_NAME_I18N='"$(PLUGIN)"'
+DEFINES += -D_GNU_SOURCE
 
 ### The object files (add further files here):
 

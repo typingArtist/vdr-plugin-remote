@@ -3,7 +3,6 @@
  *
  * See the README file for copyright information and how to reach the author.
  *
- * $Id$
  */
 
 #include <vdr/plugin.h>
@@ -20,7 +19,7 @@
 
 #define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
 
-static const char *VERSION        = "0.2.0";
+static const char *VERSION        = "0.2.1";
 static const char *DESCRIPTION    = "Remote control";
 
 //#define DEBUG
@@ -31,9 +30,17 @@ static const char *DESCRIPTION    = "Remote control";
 #define DSYSLOG(x...)
 #endif
 
-//------------------------------------------------------------------------------
+// display error message with parameters on OSD
+#define EOSD(fmt,parms...)     {  char msg[132]; \
+                                  snprintf(msg, sizeof msg, fmt, parms); \
+                                  Interface->Error(msg); \
+                                  Interface->Error(msg); /* repeat once */ }
 
+
+
+/*****************************************************************************/
 class cRemoteGeneric : protected cRemote, protected cThread
+/*****************************************************************************/
 {
 protected:
   static const uint64 INVALID_KEY = (uint64) -1;
@@ -50,8 +57,11 @@ protected:
   virtual void Action(void);
 };
 
+
+// ---------------------------------------------------------------------------
 cRemoteGeneric::cRemoteGeneric(const char *name, int f, char *d)
-:cRemote(name)
+    :cRemote(name)
+// ---------------------------------------------------------------------------
 {
     fh = f;
     device = d;
@@ -61,12 +71,18 @@ cRemoteGeneric::cRemoteGeneric(const char *name, int f, char *d)
     repeattimeout = 500;  // ms
 }
 
+
+// ---------------------------------------------------------------------------
 cRemoteGeneric::~cRemoteGeneric()
+// ---------------------------------------------------------------------------
 {
     Cancel();
 }
 
+
+// ---------------------------------------------------------------------------
 void cRemoteGeneric::Action(void)
+// ---------------------------------------------------------------------------
 {
     int now, first = 0, last = 0;
     uint64 code, lastcode = INVALID_KEY;
@@ -133,15 +149,16 @@ void cRemoteGeneric::Action(void)
     }/* for */
 }
 
-//------------------------------------------------------------------------------
 
+
+/*****************************************************************************/
 class cRemoteDevInput : protected cRemoteGeneric
+/*****************************************************************************/
 {
 private:
-  char description[256];
   bool testMode;
   uint64 testKey;
-  void loadKeymap(const char *devname, uint32_t options);
+  bool loadKeymap(const char *devname, uint32_t options);
 protected:
   virtual uint64 getKey(void);
   virtual bool keyPressed(uint64 code);
@@ -150,7 +167,41 @@ public:
   virtual bool Initialize(void);
 };
 
-void cRemoteDevInput::loadKeymap(const char *devname, uint32_t options)
+
+// ---------------------------------------------------------------------------
+//
+// Try to identify input device.
+//
+// input:   fh - file handle
+//
+// returns:  0 - unknown device
+//           1 - full-featured card
+//           2 - other DVB card, e.g. budget receiver
+//          -1 - error
+//
+// ---------------------------------------------------------------------------
+int identifyInputDevice(const int fh)
+// ---------------------------------------------------------------------------
+{
+    char description[256];
+
+    // check name of input device
+    if (ioctl(fh, EVIOCGNAME(sizeof(description)), description) < 0)
+        return -1;
+
+    if (!strcmp(description, "DVB on-card IR receiver"))
+        return 1;
+
+    if (strstr(description, "dvb"))
+        return 2;
+
+    return 0;
+}
+
+
+// ---------------------------------------------------------------------------
+bool cRemoteDevInput::loadKeymap(const char *devname, uint32_t options)
+// ---------------------------------------------------------------------------
 {
     int fh;
     uint16_t keymap[2+256];
@@ -159,8 +210,10 @@ void cRemoteDevInput::loadKeymap(const char *devname, uint32_t options)
     fh = open(devname, O_RDWR);
     if (fh < 0)
     {
-        esyslog("%s: unable to open '%s'", Name(), devname);
-        return;
+        int err = errno;
+        esyslog("%s: unable to open '%s': %s", Name(), devname, strerror(err));
+        EOSD("%s: %s", devname, strerror(err));
+        return false;
     }
 
     keymap[0] = (uint16_t) options;
@@ -170,24 +223,31 @@ void cRemoteDevInput::loadKeymap(const char *devname, uint32_t options)
         keymap[1+i] = i;
 
     n = write(fh, keymap, sizeof keymap);
-    if (n == sizeof keymap)
-        dsyslog("%s: keymap loaded '%s' flags %.8x", Name(), devname, options);
-    else
-        esyslog("%s: error uploading keymap to '%s'", Name(), devname);
 
     close(fh);
+
+    if (n == sizeof keymap)
+    {
+        dsyslog("%s: keymap loaded '%s' flags %.8x", Name(), devname, options);
+        return true;
+    }
+    else
+    {
+        esyslog("%s: error uploading keymap to '%s'", Name(), devname);
+        Interface->Error(tr("Error uploading keymap"));
+        return false;
+    }
 }
 
+
+// ---------------------------------------------------------------------------
 cRemoteDevInput::cRemoteDevInput(const char *name, int f, char *d)
-:cRemoteGeneric(name, f, d)
+    :cRemoteGeneric(name, f, d)
+// ---------------------------------------------------------------------------
 {
     testMode = false;
 
     Start();
-
-    // input device name
-    if (ioctl(f, EVIOCGNAME(sizeof(description)), description) < 0)
-        memset(description, 0, sizeof description);
 
     // autorepeat
 #define BITS_PER_LONG	(sizeof(unsigned long) * 8)
@@ -197,7 +257,7 @@ cRemoteDevInput::cRemoteDevInput(const char *name, int f, char *d)
     if ( data[EV_REP/BITS_PER_LONG] & (1 << EV_REP%BITS_PER_LONG) )
     {
         // autorepeat driver
-        DSYSLOG("%s: supports autorepeat!", d);
+        dsyslog("%s: autorepeat supported", name);
         polldelay = 0;
     }
     else
@@ -205,6 +265,15 @@ cRemoteDevInput::cRemoteDevInput(const char *name, int f, char *d)
         // non-autorepeat drivers
         polldelay = repeatdelay = repeatfreq = repeattimeout = 0;
     }
+
+    // grab device if possible (kernel 2.6)
+#ifndef EVIOCGRAB
+    // required if an old /usr/include/linux/input.h is used with a new kernel :-(
+#define EVIOCGRAB  _IOW('E', 0x90, int)   /* Grab/Release device */
+#endif
+    data[0] = 1;
+    if (ioctl(f, EVIOCGRAB, data) == 0)
+        dsyslog("%s: exclusive access granted", name);
 
     // setup keymap
     const char *setupStr = GetSetup();
@@ -225,13 +294,17 @@ cRemoteDevInput::cRemoteDevInput(const char *name, int f, char *d)
     }
 }
 
+
+// ---------------------------------------------------------------------------
 bool cRemoteDevInput::Initialize()
+// ---------------------------------------------------------------------------
 {
     testMode = true;
 
     char setupStr[256]; memset (setupStr, 0, sizeof setupStr);
 		
-    if (!strcmp(description, "DVB on-card IR receiver"))
+    // load keymap for full-featured cards
+    if (identifyInputDevice(fh) == 1)
     {
         char *kDevname = "/proc/av7110_ir";
         uint32_t kOptions;
@@ -325,7 +398,7 @@ bool cRemoteDevInput::Initialize()
         }/* for */
 
         if (testKey == 0)
-	{
+        {
             Interface->Error(tr("No remote control detected"));
             esyslog("%s: no remote control detected", device);
             usleep(5000000);
@@ -341,7 +414,10 @@ bool cRemoteDevInput::Initialize()
     return true;
 }
 
+
+// ---------------------------------------------------------------------------
 uint64 cRemoteDevInput::getKey(void)
+// ---------------------------------------------------------------------------
 {
     struct input_event ev;
     int n;
@@ -366,16 +442,20 @@ uint64 cRemoteDevInput::getKey(void)
     return code;
 }
 
+
+// ---------------------------------------------------------------------------
 bool cRemoteDevInput::keyPressed(uint64 code)
+// ---------------------------------------------------------------------------
 {
     return (code & 0xFFFF00000000ULL);
 }
 
-//------------------------------------------------------------------------------
+
 
 #ifdef OLD_LIRC
-
+/*****************************************************************************/
 class cRemoteDevLirc : protected cRemoteGeneric
+/*****************************************************************************/
 {
 protected:
   virtual uint64 getKey(void);
@@ -385,7 +465,10 @@ public:
   :cRemoteGeneric(name, f, d) { Start(); }
 };
 
+
+// ---------------------------------------------------------------------------
 uint64 cRemoteDevLirc::getKey(void)
+// ---------------------------------------------------------------------------
 {
     unsigned long code;
     int n;
@@ -397,16 +480,20 @@ uint64 cRemoteDevLirc::getKey(void)
         return (uint64)code;
 }
 
+
+// ---------------------------------------------------------------------------
 bool cRemoteDevLirc::keyPressed(uint64 code)
+// ---------------------------------------------------------------------------
 {
     return (code & 0x80);
 }
-
 #endif // OLD_LIRC
 
-//------------------------------------------------------------------------------
 
+
+/*****************************************************************************/
 class cRemoteDevTty : protected cRemoteGeneric
+/*****************************************************************************/
 {
 private:
   struct termios tm;
@@ -418,8 +505,11 @@ public:
   virtual ~cRemoteDevTty(); 
 };
 
+
+// ---------------------------------------------------------------------------
 cRemoteDevTty::cRemoteDevTty(const char *name, int f, char *d)
-:cRemoteGeneric(name, f, d)
+    :cRemoteGeneric(name, f, d)
+// ---------------------------------------------------------------------------
 {
     struct termios t;
 
@@ -434,12 +524,18 @@ cRemoteDevTty::cRemoteDevTty(const char *name, int f, char *d)
     Start();
 }
 
+
+// ---------------------------------------------------------------------------
 cRemoteDevTty::~cRemoteDevTty()
+// ---------------------------------------------------------------------------
 {
     tcsetattr(fh, TCSANOW, &tm);
 }
 
+
+// ---------------------------------------------------------------------------
 uint64 cRemoteDevTty::getKey(void)
+// ---------------------------------------------------------------------------
 {
     int n;
     uint64 code = 0;
@@ -448,14 +544,19 @@ uint64 cRemoteDevTty::getKey(void)
     return (n > 0) ? code : INVALID_KEY;
 }
 
+
+// ---------------------------------------------------------------------------
 bool cRemoteDevTty::keyPressed(uint64 code)
+// ---------------------------------------------------------------------------
 {
     return true;
 }
 
-//------------------------------------------------------------------------------
 
+
+/*****************************************************************************/
 class cPluginRemote : public cPlugin
+/*****************************************************************************/
 {
 private:
   int  devcnt;
@@ -469,14 +570,13 @@ public:
   virtual const char *Description(void) { return tr(DESCRIPTION); }
   virtual const char *CommandLineHelp(void);
   virtual bool ProcessArgs(int argc, char *argv[]);
-#if VDRVERSNUM >= 10131
-  virtual bool Initialize(void);
-#else
   virtual bool Start(void);
-#endif
 };
 
+
+// ---------------------------------------------------------------------------
 cPluginRemote::cPluginRemote(void)
+// ---------------------------------------------------------------------------
 {
     for (int i = 0; i < NUMREMOTES; i++)
     {
@@ -487,7 +587,10 @@ cPluginRemote::cPluginRemote(void)
     devcnt = 0;
 }
 
+
+// ---------------------------------------------------------------------------
 cPluginRemote::~cPluginRemote()
+// ---------------------------------------------------------------------------
 {
     // must not delete any remotes, see PLUGINS.html!
 
@@ -500,7 +603,10 @@ cPluginRemote::~cPluginRemote()
     devcnt = 0;
 }
 
+
+// ---------------------------------------------------------------------------
 const char *cPluginRemote::CommandLineHelp(void)
+// ---------------------------------------------------------------------------
 {
     return "  -i dev,   --input=dev    kernel input device (/dev/input/...)\n"
 #ifdef OLD_LIRC
@@ -509,7 +615,10 @@ const char *cPluginRemote::CommandLineHelp(void)
            "  -t dev,   --tty=dev      tty device\n";
 }
 
+
+// ---------------------------------------------------------------------------
 bool cPluginRemote::ProcessArgs(int argc, char *argv[])
+// ---------------------------------------------------------------------------
 {
     static struct option long_options[] =
             { { "input", required_argument, NULL, 'i' },
@@ -546,13 +655,11 @@ bool cPluginRemote::ProcessArgs(int argc, char *argv[])
     return true;
 }
 
-#if VDRVERSNUM >= 10131
-bool cPluginRemote::Initialize(void)
-#else
+
+// ---------------------------------------------------------------------------
 bool cPluginRemote::Start(void)
-#endif
+// ---------------------------------------------------------------------------
 {
-    char nam[25];
     bool ok = false;
 
     // translations
@@ -561,9 +668,49 @@ bool cPluginRemote::Start(void)
     // defaults
     if (devcnt == 0)
     {
-        devtyp[0] = 'i';
-        devnam[0] = "/dev/input/event0";
-        devcnt = 1;
+        /* no device specified by the user, probe eventX devices */
+        for (int i = 0; devcnt < NUMREMOTES; i++)
+        {
+            char nam[80]; 
+            sprintf(nam, "/dev/input/event%d", i);
+
+            fh[devcnt] = open(nam, O_RDONLY);
+            if (fh[devcnt] < 0)
+            {
+                switch (errno)
+                {
+                    case EACCES:
+                        // permission denied: ignore device
+                        continue;
+
+                    default:
+                        // no more devices: stop scanning
+                        break;
+                }
+                break;
+            }
+
+            if (identifyInputDevice(fh[devcnt]) >= 1)
+            {
+                // found DVB card receiver
+                close(fh[devcnt]);
+                devnam[devcnt] = strdup(nam);
+                devtyp[devcnt] = 'i';
+                devcnt++;
+                break;
+            }
+
+            // unknown device
+            close(fh[devcnt]);
+        }
+
+        // use default device if nothing could be identified
+        if (devcnt == 0)
+        {
+            devtyp[0] = 'i';
+            devnam[0] = "/dev/input/event0";
+            devcnt = 1;
+        }
     }
 
     for (int i = 0; i < devcnt; i++)
@@ -571,7 +718,9 @@ bool cPluginRemote::Start(void)
         fh[i] = open(devnam[i], O_RDONLY);
         if (fh[i] < 0)
         {
-            esyslog("%s: unable to open '%s'", Name(), devnam[i]);
+            esyslog("%s: unable to open '%s': %s",
+                    Name(), devnam[i], strerror(errno));
+            EOSD(tr("%s: %s"), devnam[i], strerror(errno));
             continue;
         }
 	
@@ -580,6 +729,7 @@ bool cPluginRemote::Start(void)
         dsyslog("%s: using '%s'", Name(), devnam[i]);
 
         // build name for remote.conf
+        char nam[25];
         char *cp = strrchr(devnam[i], '/');
 	if (cp)
             sprintf (nam, "%s-%s", Name(), cp+1);
@@ -606,9 +756,12 @@ bool cPluginRemote::Start(void)
     
     if (!ok)
         esyslog("%s: fatal error - unable to open input device", Name());
+
     return ok;
 }
 
-//------------------------------------------------------------------------------
+
+/*****************************************************************************/
+
 
 VDRPLUGINCREATOR(cPluginRemote); // Don't touch this!

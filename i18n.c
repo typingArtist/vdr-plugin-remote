@@ -29,11 +29,11 @@
     "Romaneste",
     "Magyar",
     "Català",
+    "ÀaááÚØÙ", // Russian
   },
 */
 
 const tI18nPhrase remotePhrases[] = {
-  // Menu titles:
 
   // Menu titles:
   { "Remote control",
@@ -52,6 +52,9 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
 
   { "Press any key to use pre-loaded keymap",
@@ -70,6 +73,9 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
 
   { "User-supplied keymap will be used",
@@ -88,6 +94,9 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
 
 
@@ -107,6 +116,9 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
 
   { "RC5 protocol detected",
@@ -125,6 +137,9 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
 
   { "RC5 protocol detected (inverted signal)",
@@ -143,6 +158,9 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
 
   { "RCMM protocol detected",
@@ -161,6 +179,9 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
 
   { "RCMM protocol detected (inverted signal)",
@@ -179,8 +200,10 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
-
 
   { "No remote control detected",
     "Keine Fernbedienung erkannt",
@@ -198,6 +221,51 @@ const tI18nPhrase remotePhrases[] = {
     "",
     "",
     "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+  },
+
+  { "Error uploading keymap",
+    "Fehler beim Laden der Tastenbelegung",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
+  },
+
+  { "%s: %s",
+    "%s: %s",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+#if VDRVERSNUM >= 10302
+    "",
+#endif
   },
 
   { NULL }

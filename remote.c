@@ -48,7 +48,7 @@
 #define AV7110_PARM_INVERSION     "/sys/module/dvb_ttpci/parameters/ir_inversion"
 #endif
 
-static const char *VERSION        = "0.6.0";
+static const char *VERSION        = "0.7.0";
 static const char *DESCRIPTION    = trNOOP("Remote control");
 
 
@@ -513,6 +513,7 @@ cRemoteDevTty::cRemoteDevTty(const char *name, int f, char *d)
 // ---------------------------------------------------------------------------
 {
     struct termios t;
+    memset(&tm, 0, sizeof tm);
 
     if (!tcgetattr(f, &tm))
     {

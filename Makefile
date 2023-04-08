@@ -1,7 +1,7 @@
 #
 # Remote Control plugin for the Video Disk Recorder
 #
-# Copyright (C) 2002-2010 Oliver Endriss <o.endriss@gmx.de>
+# Copyright (C) 2002-2015 Oliver Endriss <o.endriss@gmx.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -34,6 +34,7 @@ VERSION = $(shell grep 'static const char \*VERSION *=' $(PLUGIN).c | awk '{ pri
 PKGCFG = $(if $(VDRDIR),$(shell pkg-config --variable=$(1) $(VDRDIR)/vdr.pc),$(shell pkg-config --variable=$(1) vdr || pkg-config --variable=$(1) ../../../vdr.pc))
 LIBDIR = $(DESTDIR)$(call PKGCFG,libdir)
 LOCDIR = $(DESTDIR)$(call PKGCFG,locdir)
+PLGCFG = $(call PKGCFG,plgcfg)
 #
 TMPDIR ?= /tmp
 
@@ -90,6 +91,11 @@ OLD_I18N = 1
 i18n install-i18n:
 	
 endif
+
+else # compatibility section
+
+-include $(PLGCFG)
+
 endif # compatibility section
 
 ### The name of the distribution archive:
@@ -119,6 +125,7 @@ endif
 ifneq ($(OLD_I18N),)
 OBJS += i18n.o
 endif
+OBJS += compat.o
 
 ### The main target:
 
@@ -191,6 +198,6 @@ clean:
 env:
 	@echo "Configuration:"
 	@echo "  APIVERSION $(APIVERSION)"
-	@echo "  CXX $(CXX)  CXXFLAGS $(CXXFLAGS)"
+	@echo "  CXX $(CXX)  CXXFLAGS $(CXXFLAGS)  LDFLAGS $(LDFLAGS)"
 	@echo "  VDRDIR $(VDRDIR)  LIBDIR $(LIBDIR)  LOCDIR $(LOCDIR)"
 

@@ -9,6 +9,7 @@ Mike Gratsas <MikeGratsas at techemail dot com>
 
 Ville Skyttä <ville dot skytta at iki dot fi>
  for translating OSD texts to the Finnish language
+ for providing a patch to use plgcfg from pkg-config
 
 Ronny Kornexl <ronny dot kornexl at online dot de>
  for reporting that cTtyStatus::Recording() and cTtyStatus::Replaying()

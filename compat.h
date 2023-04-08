@@ -1,9 +1,12 @@
 /*
  * Remote Control plugin for the Video Disk Recorder
  *
- * remotetcp.h: tcp/telnet remote control
+ * compat.h: Compatibility stuff
  *
- * Copyright (C) 2002-2015 Oliver Endriss <o.endriss@gmx.de>
+ * Copyright (C) 2015 Oliver Endriss <o.endriss@gmx.de>
+ *
+ * cSocketRemote was copied from cSocket (svdrp.h, VDR 2.2.0):
+ * Copyright (C) 2000, 2003, 2006, 2008, 2013 Klaus Schmidinger
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,30 +24,29 @@
  * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
+#ifndef __PLUGIN_REMOTE_COMPAT_H
+#define __PLUGIN_REMOTE_COMPAT_H
 
-#ifndef __PLUGIN_REMOTETCP_H
-#define __PLUGIN_REMOTETCP_H
+#if VDRVERSNUM >= 20300
 
-
-#include "compat.h"
-#include "remote.h"
-
-
-/****************************************************************************/
-class cTcpRemote : protected cRemoteDevTty
-/****************************************************************************/
-{
+class cSocketRemote {
 private:
-  cTtyStatus *cstatus;
-  cSocketRemote *csock;
-
-protected:
-  virtual uint64_t getKey(void);
-
+  int port;
+  int sock;
+  int queue;
+  void Close(void);
 public:
-  cTcpRemote(const char *name, int f, char *d);
-  virtual ~cTcpRemote();
-};
+  cSocketRemote(int Port, int Queue = 1);
+  ~cSocketRemote();
+  bool Open(void);
+  int Accept(void);
+  };
 
+#else // VDRVERSNUM >= 20300
 
-#endif // __PLUGIN_REMOTETCP_H
+#include <vdr/svdrp.h>
+typedef cSocket	cSocketRemote;
+
+#endif // VDRVERSNUM >= 20300
+
+#endif //__PLUGIN_REMOTE_COMPAT_H

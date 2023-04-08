@@ -3,7 +3,7 @@
  *
  * remotetcp.c: tcp/telnet remote control
  *
- * Copyright (C) 2002-2012 Oliver Endriss <o.endriss@gmx.de>
+ * Copyright (C) 2002-2015 Oliver Endriss <o.endriss@gmx.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,10 +46,16 @@ cTcpRemote::~cTcpRemote()
     }
 
     if (fh != -1)
+    {
         close(fh);
+        fh = -1;
+    }
 
     if (csock)
+    {
         delete csock;
+        csock = NULL;
+    }
 }		  
 
 
@@ -59,7 +65,7 @@ uint64_t cTcpRemote::getKey(void)
     {
         int port;
         sscanf (device, "tcp:%d", &port);
-        csock = new cSocket(port);
+        csock = new cSocketRemote(port);
         if (! csock)
         {
             esyslog("error creating socket");
@@ -77,6 +83,9 @@ uint64_t cTcpRemote::getKey(void)
     while (fh < 0)
     {
         usleep(100000);
+        if (csock == NULL)
+        	return INVALID_KEY;
+
         fh = csock->Accept();
         if (fh >= 0)
         {

@@ -141,3 +141,8 @@ VDR Plugin 'remote' Revision History
   o Avoid display errors with VDR 2.2.0.
   o Fixed misaligned output caused by multi-byte characters.
   o Some speed improvements.
+
+2015-09-20: Version 0.7.0
+- Fix a random crash when terminating the tcp remote.
+- Use plgcfg from pkg-config (thanks to Ville Skyttä).
+- Support VDR version 2.3.1+.

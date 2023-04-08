@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Remote Control plugin 0.4.0\n"
 "Report-Msgid-Bugs-To: <o.endriss@gmx.de>\n"
-"POT-Creation-Date: 2012-05-27 17:56+0200\n"
+"POT-Creation-Date: 2015-09-15 18:54+0200\n"
 "PO-Revision-Date: 2007-10-05 06:58+0200\n"
 "Last-Translator: Waldemar Nikel, 2006\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -16,47 +16,36 @@ msgstr ""
 "Content-Type: text/plain; charset=ISO-8859-5\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: remote.c:52
 msgid "Remote control"
 msgstr "Пульт управления"
 
-#: remote.c:233 remote.c:777
 #, c-format
 msgid "%s: %s"
 msgstr "%s: %s"
 
-#: remote.c:255
 msgid "Error uploading keymap"
 msgstr "Ошибка при загрузке раскладки"
 
-#: remote.c:336
 msgid "Press any key to use pre-loaded keymap"
 msgstr "Нажмите любую кнопку для использования ранее загруженой раскладки"
 
-#: remote.c:341
 msgid "User-supplied keymap will be used"
 msgstr "Будет использоваться раскладка пользователя"
 
-#: remote.c:347
 msgid "Remote control test - press and hold down any key"
 msgstr "Проверка пульта - нажмите и удержите любую кнопку"
 
-#: remote.c:366
 msgid "RC5 protocol detected"
 msgstr "Опознан протокол RC5"
 
-#: remote.c:390
 msgid "RC5 protocol detected (inverted signal)"
 msgstr "Опознан протокол RC5 (с инвертированием сигнала)"
 
-#: remote.c:401
 msgid "RCMM protocol detected"
 msgstr "Опознан протокол RCMM"
 
-#: remote.c:412
 msgid "RCMM protocol detected (inverted signal)"
 msgstr "Опознан протокол RCMM (с инвертированием сигнала)"
 
-#: remote.c:420
 msgid "No remote control detected"
 msgstr "Пульт управления не опознан"

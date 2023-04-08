@@ -3,7 +3,7 @@
  *
  * ttystatus.h: tty osd emulation
  *
- * Copyright (C) 2002-2012 Oliver Endriss <o.endriss@gmx.de>
+ * Copyright (C) 2002-2015 Oliver Endriss <o.endriss@gmx.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,10 +39,10 @@
 #include <vdr/status.h>
 
 
-#define clear_screen()   { set_color(WHITE_BLACK); print("\e[2J"); }
+#define clear_screen()   { set_color(WHITE_BLACK); display("\e[2J"); }
 #define refresh()        
 #define set_pos(y,x)     print("\e[%d;%dH", y+1, x+1);
-#define print(fmt...)    { char buf[100]; snprintf(buf,100, fmt); display(buf); }
+#define print(fmt...)    { char buf[140]; snprintf(buf,sizeof buf,fmt); display(buf); }
   
 
 /****************************************************************************/
@@ -54,11 +54,13 @@ private:
   int numEntries;
   int lastIndex;
   int currIndex;
-  int tabstop;
+  static const int maxTabs = 10;
+  int numTabs;
+  int tabPos[maxTabs];
 
 protected:
-  virtual void display(const char *buf);
-  virtual void display2(const char *buf);
+  void dprintf(const char *Text);
+  virtual void display(const char *buf, const bool fillEOL = false, const int limit = 80);
   virtual void set_color(int col);
 #if VDRVERSNUM <= 10337
   virtual void Replaying(const cControl *Control, const char *Name);

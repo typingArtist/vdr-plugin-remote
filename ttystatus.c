@@ -3,7 +3,7 @@
  *
  * ttystatus.c: tty osd emulation
  *
- * Copyright (C) 2002-2012 Oliver Endriss <o.endriss@gmx.de>
+ * Copyright (C) 2002-2015 Oliver Endriss <o.endriss@gmx.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,72 +24,97 @@
 
 #include <vdr/plugin.h>
 #include <vdr/status.h>
+#include <wchar.h>
 #include "ttystatus.h"
 
 
-void cTtyStatus::display(const char *buf)
+void cTtyStatus::dprintf(const char *Text)
+{
+    char *text = strdup(Text);
+
+    if (text)
+    {
+        for (int i = 0; i < (int)strlen(text); i++)
+        {
+            switch(text[i])
+            {
+                case '\t':
+                    text[i] = '|';
+                    break;
+            }
+        }
+        printf("%s: '%s'\n", __func__, text);
+        free(text);
+    }
+}
+
+
+void cTtyStatus::display(const char *buf, const bool fillEOL, const int limit)
 {
     int n = strlen(buf);
-    int tabs = 0;
-    int tabstop = 30;
     int pos = 0;
+    int t = 0;
+    mbstate_t ps;
+    static const char blanks[] = "                    ";
 
-    for (int i = 0; i < n; i++)
-    {
-        if (buf[i] == '\t')
-            tabs++;
-    }
+    memset(&ps, 0, sizeof ps);
 
-    if (tabs == 1)
-        tabstop = 40;
-    else if (tabs == 2)
-        tabstop = 10;
-    else if (tabs == 3)
-        tabstop = 8;
-    else
-        tabstop = 4;
-  
-    for (int i = 0; i < n && pos < 80; i++)
+    for (int i = 0; i < n && pos < limit; )
     {
         switch (buf[i])
         {
             case '\t':
                 do 
                 {
-                    write(fd, " ", 1);
+                    write(fd, blanks, 1);
                     pos++;
                 }
-                while (pos % tabstop != 0);
+                while (t < numTabs && pos <= tabPos[t] + t+1);
+                if (t < numTabs)
+                    t++;
+                i++;
                 break;
 
             case '\n':
                 write(fd, "\r\n", 2);
+                i++;
                 break;
 
             default:
-                write(fd, buf+i, 1);
+#if 1
+                // first calculate number of bytes, then perform a single 'write'
+                const char *p = buf+i;
+                int l = 0;
+                while (*p != '\t' && *p != '\n' && pos < limit)
+                {
+                    int l2 = mbrlen(p, MB_CUR_MAX, &ps);
+                    if (l2 == 0)
+                        break;
+                    if (l2 < 0)
+                        l2 = 1;
+                    p += l2;
+                    l += l2;
+                    pos++;
+                }
+#else
+                // simple but suboptimal: one 'write' for each character
+                int l = mbrlen(buf+i, MB_CUR_MAX, &ps);
+                if (l < 0)
+                    l = 1;
                 pos++;
+#endif
+                write(fd, buf+i, l);
+                i += l;
                 break;
         }
     }
-}
 
-
-void cTtyStatus::display2(const char *buf)
-{
-    for (size_t i = 0; i < strlen(buf); i++)
+    while (fillEOL && pos < limit)
     {
-        switch(buf[i])
-        {
-            case '\n':
-                write(fd, "\r\n", 2);
-                break;
-
-            default:
-                write(fd, buf+i, 1);
-                break;
-        }
-    } 
+        n = min(limit-pos, (int)sizeof(blanks)-1);
+        write(fd, blanks, n);
+        pos += n;
+    }
 }
 
 
@@ -98,35 +123,35 @@ void cTtyStatus::set_color(int col)
     switch(col)
     {
         case WHITE_BLACK:
-            print("\e[1m\e[37m\e[40m");
+            display("\e[1m\e[37m\e[40m");
 	    break;
 
         case YELLOW_BLACK:
-            print("\e[1m\e[33m\e[40m");
+            display("\e[1m\e[33m\e[40m");
 	    break;
 
         case CYAN_BLACK:
-            print("\e[1m\e[36m\e[40m");
+            display("\e[1m\e[36m\e[40m");
 	    break;
 
         case BLACK_CYAN:
-            print("\e[0m\e[30m\e[46m");
+            display("\e[0m\e[30m\e[46m");
 	    break;
 
         case BLACK_RED:
-            print("\e[0m\e[30m\e[41m");
+            display("\e[0m\e[30m\e[41m");
 	    break;
 
         case BLACK_GREEN:
-            print("\e[0m\e[30m\e[42m");
+            display("\e[0m\e[30m\e[42m");
             break;
 
         case BLACK_YELLOW:
-            print("\e[0m\e[30m\e[43m");
+            display("\e[0m\e[30m\e[43m");
             break;
 
         case WHITE_BLUE:
-            print("\e[1m\e[37m\e[44m");
+            display("\e[1m\e[37m\e[44m");
             break;
     }
 }		  
@@ -220,7 +245,8 @@ void cTtyStatus::OsdTitle(const char *Title)
     clear_screen();
     set_color(BLACK_CYAN);
     set_pos(0, 0);
-    print("     %-80s", Title);
+    display("", true, 5);
+    display(Title, true, 75);
     set_color(WHITE_BLACK);
     refresh();
     set_pos(2, 0);
@@ -233,12 +259,13 @@ void cTtyStatus::OsdStatusMessage(const char *Message)
     if (Message)
     {
         set_color(BLACK_YELLOW);
-        print("     %-80s", Message);
+        display("", true, 5);
+        display(Message, true, 75);
     }
     else
     {
         set_color(WHITE_BLACK);
-        print("%-80s", "");
+        display("", true);
     }
     refresh();
     set_pos(2, 0);
@@ -249,20 +276,24 @@ void cTtyStatus::OsdHelpKeys(const char *Red, const char *Green,
                              const char *Yellow, const char *Blue)
 {
     set_color(Red ? BLACK_RED : WHITE_BLACK);
-    set_pos(24,0);
-    print("     %-15s", Red ? Red : "");
+    set_pos(24, 0);
+    display("", true, 5);
+    display(Red ? Red : "", true, 15);
 
     set_color(Green ? BLACK_GREEN: WHITE_BLACK);
-    set_pos(24,20);
-    print("     %-15s", Green ? Green : "");
+    set_pos(24, 20);
+    display("", true, 5);
+    display(Green ? Green : "", true, 15);
 
     set_color(Yellow ? BLACK_YELLOW : WHITE_BLACK);
-    set_pos(24,40);
-    print("     %-15s", Yellow ? Yellow : "");
+    set_pos(24, 40);
+    display("", true, 5);
+    display(Yellow ? Yellow : "", true, 15);
 
     set_color(Blue ? WHITE_BLUE : WHITE_BLACK);
-    set_pos(24,60);
-    print("     %-15s", Blue ? Blue : "");
+    set_pos(24, 60);
+    display("", true, 5);
+    display(Blue ? Blue : "", true, 15);
 
     refresh();
     set_pos(2, 0);
@@ -331,13 +362,35 @@ void cTtyStatus::OsdCurrentItem(const char *Text)
         first = max(first,0);
         last = min(first+20,lastIndex);
 
+        // Update tab positions in window
+        memset(tabPos, 0, sizeof tabPos);
+        numTabs = 0;
+        for (i = first; i <= last; i++)
+        {
+            int n = strlen(lineBuf[i]);
+            int t = 0;
+            for (int j = 0; j < n; j++)
+            {
+                if (lineBuf[i][j] == '\t' && t < maxTabs)
+                {
+                    tabPos[t] = max(tabPos[t], j);
+                    t++;
+                }
+            }
+            numTabs = max(numTabs, t);
+        }
+#if 0
+	for (i = 0; i < numTabs; i++)
+	    printf("tab %d at position %d\n", i, tabPos[i]);
+#endif
+
         set_color(WHITE_BLACK);
         for (i = first; i <= last; i++)
         {
             if (i == currIndex)
                 set_color(BLACK_CYAN);
             set_pos(2+i-first, 0);
-            print("%-80s", lineBuf[i]);
+            display(lineBuf[i], true);
             if (i == currIndex)
                 set_color(WHITE_BLACK);
         }
@@ -346,6 +399,10 @@ void cTtyStatus::OsdCurrentItem(const char *Text)
     }
 }
 
+
+//
+// Note: Used for event decription, recording info etc.
+//
 void cTtyStatus::OsdTextItem(const char *Text, bool Scroll)
 {
     // dsyslog("%s: '%s' scroll %d", __FUNCTION__, Text, Scroll);
@@ -353,8 +410,8 @@ void cTtyStatus::OsdTextItem(const char *Text, bool Scroll)
     if (Text)
     {
         set_color(CYAN_BLACK);
-        display2(Text);
-        display2("\n\n");
+        display(Text, false, 0x7fff);
+        display("\n\n");
         refresh();
     }
     else
@@ -369,7 +426,7 @@ void cTtyStatus::OsdChannel(const char *Text)
     clear_screen();
     set_color(WHITE_BLACK);
     set_pos(19, 0);
-    print("%-80s", Text);
+    display(Text);
     refresh();
 }
 
@@ -387,16 +444,16 @@ void cTtyStatus::OsdProgramme(time_t PresentTime, const char *PresentTitle,
     {
         set_color(YELLOW_BLACK);
         set_pos(line++, 0);
-        print("%5s ", buffer);
+        display(buffer, true, 6);
         set_color(CYAN_BLACK);
-        print("%s", PresentTitle);
+        display(PresentTitle);
     }
     if (PresentSubtitle)
     {
         if (strlen(PresentSubtitle))
         {
-            set_pos(line++, 0);
-            print("%5s %s", "", PresentSubtitle);
+            set_pos(line++, 6);
+            display(PresentSubtitle);
         }
     }
 
@@ -405,14 +462,14 @@ void cTtyStatus::OsdProgramme(time_t PresentTime, const char *PresentTitle,
     {
         set_color(YELLOW_BLACK);
         set_pos(line++, 0);
-        print("%5s ", buffer);
+        display(buffer, true, 6);
         set_color(CYAN_BLACK);
-        print("%s", FollowingTitle);
+        display(FollowingTitle);
     }
     if (FollowingSubtitle)
     {
-        set_pos(line++, 0);
-        print("%5s %s", "", FollowingSubtitle);
+        set_pos(line++, 6);
+        display(FollowingSubtitle);
     }
 
     refresh();

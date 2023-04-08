@@ -130,3 +130,14 @@ VDR Plugin 'remote' Revision History
 - Access /proc/av7110_ir in write-only mode (required by kernel 2.6.34+).
 - Adopt Makefile for vdr 1.7.34+.
 
+
+2015-04-12: Version 0.6.0
+- Use Repeat Delay/Repeat Delta settings (VDR->Setup->Miscellaneous).
+- Support event type 2 (mouse wheel, rotary-encoder) as a remote control
+  (thanks to Thomas Reufer).
+- Improved OSD emulation:
+  o Reworked tabulator processing.
+  o Optimal use of limited screen width.
+  o Avoid display errors with VDR 2.2.0.
+  o Fixed misaligned output caused by multi-byte characters.
+  o Some speed improvements.

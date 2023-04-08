@@ -1,7 +1,7 @@
 remote - Remote Control plugin for the Video Disk Recorder (VDR)
 ================================================================
 
-Version:                      0.5.0
+Version:                      0.6.0
 
 Written by:                   Oliver Endriss <o.endriss@gmx.de>
 
@@ -24,7 +24,7 @@ The following remote control devices are supported:
     - Built-in remote control port of the av711x-based DVB cards
       (SD full-featured cards), e.g. DVB-S Nexus.
     - Remote control port of some budget cards, e.g. Nova-CI.
-    - Other input devices.
+    - Other input devices (rotary-encoder, wheel mouse).
     See file FAQ for a list of cards which have been reported to work.
 
 (b) keyboard (tty driver): /dev/console, /dev/ttyX
@@ -33,17 +33,13 @@ The following remote control devices are supported:
 
 (d) LIRC
 
-Notes:
-[1] supported by DVB and dvb-kernel
-[2] supported by dvb-kernel only
-
 
 Installation:
 -------------
 The Remote Control plugin is installed the same way as any other plugin:
 - cd VDR/PLUGINS/src
-- tar xfz vdr-remote-0.5.0.tgz
-- ln -s remote-0.5.0 remote
+- tar xfz vdr-remote-0.6.0.tgz
+- ln -s remote-0.6.0 remote
 - cd ../..
 - make plugins
 
@@ -94,7 +90,7 @@ for all remote controls.)
 
 Notes:
 [3] There is a restriction:
-    By default, /proc/av7110 is owned by root with permissions -rw-r-r- (0644).
+    By default, /proc/av7110 is owned by root with permissions --w------- (0200).
     Therefore, the new autodetect feature can be used only,
     - if vdr runs as root
     or

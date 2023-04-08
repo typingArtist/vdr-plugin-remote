@@ -3,7 +3,7 @@
  *
  * remote.c: main source file
  *
- * Copyright (C) 2002-2012 Oliver Endriss <o.endriss@gmx.de>
+ * Copyright (C) 2002-2015 Oliver Endriss <o.endriss@gmx.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,7 +48,7 @@
 #define AV7110_PARM_INVERSION     "/sys/module/dvb_ttpci/parameters/ir_inversion"
 #endif
 
-static const char *VERSION        = "0.5.0";
+static const char *VERSION        = "0.6.0";
 static const char *DESCRIPTION    = trNOOP("Remote control");
 
 
@@ -137,6 +137,10 @@ void cRemoteGeneric::Action(void)
                 Put(code);
                 DSYSLOG("%s: press %016llx\n", device, code);
                 lastcode = code;
+#if APIVERSNUM >= 10741
+                repeatdelay = Setup.RcRepeatDelay;
+                repeatfreq = Setup.RcRepeatDelta;
+#endif
 #if VDRVERSNUM <= 10317
                 last = first = now;
 #else
@@ -443,11 +447,11 @@ uint64_t cRemoteDevInput::getKey(void)
 
     do
         n = read(fh, &ev, sizeof ev);
-    while (n == sizeof ev && ev.type != 1);
+    while (n == sizeof ev && ev.type != 1 && ev.type != 2);
 
     if (n == sizeof ev)
     {
-        if (ev.value)
+        if (ev.value && ev.type == 1)
             ev.value = 1;
         code = ((uint64_t)ev.value << 32) | ((uint64_t)ev.type << 16) | (uint64_t)ev.code;
     }

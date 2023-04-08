@@ -28,7 +28,7 @@
  
 #define KEYMAP_DEVICE_AV7110   "/proc/av7110_ir"
 
-static const char *VERSION        = "0.3.2";
+static const char *VERSION        = "0.3.3";
 static const char *DESCRIPTION    = "Remote control";
 
 
@@ -67,7 +67,11 @@ bool cRemoteGeneric::Put(uint64 Code, bool Repeat, bool Release)
 void cRemoteGeneric::Action(void)
 // ---------------------------------------------------------------------------
 {
+#if VDRVERSNUM <= 10317
     int now, first = 0, last = 0;
+#else
+    cTimeMs first, rate, timeout;
+#endif
     uint64 code, lastcode = INVALID_KEY;
     bool repeat = false;
 
@@ -84,12 +88,18 @@ void cRemoteGeneric::Action(void)
             continue;
         }
 
+#if VDRVERSNUM <= 10317
         now = time_ms();
+#endif
 
         if (keyPressed(code))
         {
             // key down
+#if VDRVERSNUM <= 10317
             if (now - last > repeattimeout)
+#else
+            if (timeout.TimedOut())
+#endif
             {
                 if (repeat)
                 {
@@ -105,16 +115,31 @@ void cRemoteGeneric::Action(void)
                 Put(code);
                 DSYSLOG("%s: press %016llx\n", device, code);
                 lastcode = code;
+#if VDRVERSNUM <= 10317
                 last = first = now;
+#else
+                first.Set(repeatdelay);
+                rate.Set(repeatfreq);
+                timeout.Set(repeattimeout);
+#endif
                 repeat = false;
             }
             else
             {
+#if VDRVERSNUM <= 10317
                 if (now - first < repeatdelay || now - last < repeatfreq)
+#else
+                if (!first.TimedOut() || !rate.TimedOut())
+#endif
                     continue;
                 Put(code,true);
                 DSYSLOG("%s: repeat %016llx\n", device, code);
+#if VDRVERSNUM <= 10317
                 last = now;
+#else
+                rate.Set(repeatfreq);
+                timeout.Set(repeattimeout);
+#endif
                 repeat = true;
             }
         }
@@ -141,6 +166,7 @@ void cRemoteGeneric::Action(void)
 // Try to identify input device.
 //
 // input:   fh - file handle
+//          name - device name
 //
 // returns:  0 - unknown device
 //           1 - full-featured card
@@ -148,7 +174,7 @@ void cRemoteGeneric::Action(void)
 //          -1 - error
 //
 // ---------------------------------------------------------------------------
-int identifyInputDevice(const int fh)
+int identifyInputDevice(const int fh, char *name)
 // ---------------------------------------------------------------------------
 {
     char description[256];
@@ -157,7 +183,7 @@ int identifyInputDevice(const int fh)
     if (ioctl(fh, EVIOCGNAME(sizeof(description)), description) < 0)
         return -1;
 
-    // dsyslog("%s: %s", __FUNCTION__, description);
+    dsyslog("device %s: %s", name, description);
 
     if (!strcmp(description, "DVB on-card IR receiver"))
         return 1;
@@ -274,7 +300,7 @@ bool cRemoteDevInput::Initialize()
     char setupStr[256]; memset (setupStr, 0, sizeof setupStr);
 		
     // load keymap for full-featured cards
-    if (identifyInputDevice(fh) == 1)
+    if (identifyInputDevice(fh, device) == 1)
     {
         char *kDevname = "/proc/av7110_ir";
         uint32_t kOptions;
@@ -665,7 +691,7 @@ bool cPluginRemote::Start(void)
                     break;
                 }
 		
-                if (identifyInputDevice(fh[i]) >= 1)
+                if (identifyInputDevice(fh[i], nam) >= 1)
                 {
                     // found DVB card receiver
                     devnam[i] = strdup(nam);

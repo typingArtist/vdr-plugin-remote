@@ -71,3 +71,8 @@ VDR Plugin 'remote' Revision History
 - LIRC remote control fixed (thanks to Mike Gratsas).
 - OSD emulation: minor improvements.
 - Added Finnish language texts (thanks to Ville Skyttä).
+
+
+2005-01-09: Version 0.3.3
+- Fixed to compile with vdr 1.3.18+
+- Write name of input device to syslog.
